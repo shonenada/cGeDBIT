@@ -1,4 +1,4 @@
-#include "../../HeaderFiles/Metric/DNAMetric.h"
+#include "../../HeaderFiles/metric/DNAMetric.h"
 
 CDNAMetric::CDNAMetric(double* dist, int _distWidth){
 	distWidth = _distWidth;

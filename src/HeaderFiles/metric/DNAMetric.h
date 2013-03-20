@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include "Metric.h"
-#include "../Objects/DNA.h"
+#include "../objects/DNA.h"
 
 using namespace std;
 

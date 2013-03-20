@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <ctime>
 #include "../../HeaderFiles/objects/DNA.h"
 #include "../../HeaderFiles/metric/DNAMetric.h"
-#include<time.h>
 
 using namespace std;
 
@@ -13,11 +13,11 @@ int main(){
 	double totaltime;
 	start=clock();
 
-	string filename = "../../data/arab1.con";
+	string filename = "data/arab1.con";
 	int maxSize = 100000;
     int fragmentLength = 18;
 
-	ofstream outfile("../../data/arab1-cpp.result", ios::out);
+	ofstream outfile("data/arab1-cpp.result", ios::out);
 
 	cout << "Begin loadding file" << endl;
 	vector<shared_ptr<CDNA>> list = CDNA::loadData(filename, maxSize, fragmentLength);
@@ -31,7 +31,7 @@ int main(){
 
 	finish=clock();
 	totaltime=(double)(finish-start)/CLOCKS_PER_SEC;
-	cout<<"此程序的运行时间为"<<totaltime<<"秒！"<<endl;
+	cout << "Execute Time: " << totaltime << " seconds" << endl;
 
 	system("pause");
 	return 1;
