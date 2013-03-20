@@ -24,7 +24,6 @@ class CDNA:
 {
 
 public:
-    static double EditDistanceMatrix[15][15];
     static CDNASymbol Symbols[DNASYMBOLNUMBER];
     string sid;
     string sequence;

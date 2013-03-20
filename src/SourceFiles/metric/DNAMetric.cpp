@@ -1,14 +1,27 @@
 #include "../../HeaderFiles/metric/DNAMetric.h"
 
-CDNAMetric::CDNAMetric(double* dist, int _distWidth){
-	distWidth = _distWidth;
-	distance = new double[_distWidth * _distWidth];
-	int i, j;
-	for(i=0;i<_distWidth;i++){
-		for(j=0;j<_distWidth;j++){
-			distance[ i * _distWidth + j ] = dist[i * _distWidth + j];
-		}
-	}
+double CDNAMetric::EditDistanceMatrix[DNASYMBOLNUMBER][DNASYMBOLNUMBER] = 
+{
+    {  0,  1,  1,  1,0.5,  1,0.5,  1,0.5,  1,  1,0.5,0.5,0.5,0.5}, // A Adenine 
+    {  1,  0,  1,  1,  1,0.5,0.5,  1,  1,0.5,0.5,  1,0.5,0.5,0.5}, // C Cytosine
+    {  1,  1,  0,  1,0.5,  1,  1,0.5,  1,0.5,0.5,0.5,  1,0.5,0.5}, // G Guanine  
+    {  1,  1,  1,  0,  1,0.5,  1,0.5,0.5,  1,0.5,0.5,0.5,  1,0.5}, // T Thymine   
+    {0.5,  1,0.5,  1,  0,  1,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5}, // R Purine (A or G)  
+    {  1,0.5,  1,0.5,  1,  0,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5}, // Y Pyrimidine (C, T, or U)      
+    {0.5,0.5,  1,  1,0.5,0.5,  0,  1,0.5,0.5,0.5,0.5,0.5,0.5,0.5}, // M C or A  
+    {  1,  1,0.5,0.5,0.5,0.5,  1,  0,0.5,0.5,0.5,0.5,0.5,0.5,0.5}, // K T, U, or G  
+    {0.5,  1,  1,0.5,0.5,0.5,0.5,0.5,  0,  1,0.5,0.5,0.5,0.5,0.5}, // W T, U, or A   
+    {  1,0.5,0.5,  1,0.5,0.5,0.5,0.5,  1,  0,0.5,0.5,0.5,0.5,0.5}, // S C or G 
+    {  1,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,  0,0.5,0.5,0.5,0.5}, // B C, T, U, or G (not A)
+    {0.5,  1,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,  0,0.5,0.5,0.5}, // D A, T, U, or G (not C)
+    {0.5,0.5,  1,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,  0,0.5,0.5}, // H A, T, U, or C (not G) 
+    {0.5,0.5,0.5,  1,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,  0,0.5}, // V A, C, or G (not T, not U)
+    {0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,  0}  // N Anybase (A,C,G,T,or U) 
+};
+
+CDNAMetric::CDNAMetric()
+{
+
 }
 
 double CDNAMetric::getDistance(CIndexObject* one, CIndexObject* two)
@@ -31,7 +44,7 @@ double CDNAMetric::getDistance(CDNA* one, CDNA* two)
 	vector<int> one_byte = one->getBytes();
 	vector<int> two_byte = two->getBytes();
 	for(i=0;i<one_size;i++){
-		dist = dist + distance[one_byte[i] + distWidth * two_byte[i] ];
+		dist = dist + CDNAMetric::EditDistanceMatrix[one_byte[i]][two_byte[i]];
 	}
 	return dist;
 }

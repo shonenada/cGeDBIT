@@ -21,7 +21,7 @@ int main(){
 
 	cout << "Begin loadding file" << endl;
 	vector<shared_ptr<CDNA>> list = CDNA::loadData(filename, maxSize, fragmentLength);
-	CDNAMetric metric(&CDNA::EditDistanceMatrix[0][0], DNASYMBOLNUMBER);
+	CDNAMetric metric;
 
 	double dist;
 	for(int i=0;i<list.size()-1;i++){

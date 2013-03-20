@@ -12,8 +12,8 @@ class CDNAMetric:
 {
 public:
 	int distWidth;
-	double* distance;
-	CDNAMetric(double*, int distWidth);
+	static double EditDistanceMatrix[DNASYMBOLNUMBER][DNASYMBOLNUMBER];
+	CDNAMetric();
 
 	virtual double getDistance(CIndexObject* one, CIndexObject* two);
 	double getDistance(CDNA* one, CDNA* two);
