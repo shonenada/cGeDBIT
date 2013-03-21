@@ -1,5 +1,5 @@
-#ifndef DNA_H
-#define DNA_H
+#ifndef RNA_H
+#define RNA_H
 
 #include <iostream>
 #include <fstream>
@@ -11,33 +11,33 @@
 
 using namespace std;
 
-#define DNASYMBOLNUMBER 15
+#define RNASYMBOLNUMBER 15
 
-struct CDNASymbol{
+struct CRNASymbol{
     int byte;
     char abbr;
     string description;
 };
 
-class CDNA:
+class CRNA:
     public CIndexObject
 {
 
 public:
-    static CDNASymbol Symbols[DNASYMBOLNUMBER];
+    static CRNASymbol Symbols[RNASYMBOLNUMBER];
     string sid;
     string sequence;
 
-    CDNA(string sid, string sequence);
-    void initDNASymbols();
+    CRNA(string sid, string sequence);
+    void initRNASymbols();
 
     int getSymbolByte(char symbol);
 	vector<int> getBytes();
     
     virtual int getSize();
 
-    static vector<shared_ptr<CDNA>> loadData(string filename, int maxSize, int fragmentLength);
-	static vector<shared_ptr<CDNA>> tear(CDNA* dna, int fragmentLength);
+    static vector<shared_ptr<CRNA>> loadData(string filename, int maxSize, int fragmentLength);
+	static vector<shared_ptr<CRNA>> tear(CRNA* dna, int fragmentLength);
 
 };
 
