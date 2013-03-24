@@ -1,55 +1,97 @@
 #include "../../HeaderFiles/objects/DNA.h"
+/** @addtogroup CDNA
+ *  @{
+ */
 
-CDNASymbol CDNA::Symbols[DNASYMBOLNUMBER] = {
+/** A  static data set stored DNA symbols.  */
+CDNASymbol CDNA::DNASymbols[DNASYMBOLNUMBER] = {
 	{0, 'A', "Adenine"}, {1, 'C', "Cytosine"}, {2, 'G', "Guanie"}, {3, 'T', "Thymine"},
 	{4, 'R', "Purine"}, {5, 'Y', "Pyrimidine"}, {6, 'M', "C or A"}, {7, 'K', "T, U, or G"},
 	{8, 'W', "T, U or A"}, {9, 'S', "C or G"}, {10, 'G', "not A"}, {11, 'D', "not C"},
 	{12, 'H', "not G"}, {13, 'V', "not T, U"}, {14, 'N', "Any base"}
 };
 
-CDNA::CDNA(string _sid, string _sequence)
+/**
+ * A constructor
+ *  This constructor initial DNA sequence.
+ *  @param string sid          Identity string of this DNA sequence.
+ *  @param string sequence     Sequence of this DNA.
+ *  Details:
+ *  - The first string parameter will be assigned to _sequenceid.
+ *  - The second string parameter will be assigned to _sequence.
+ *  - Property _size will be assigned by _sequence's size.
+ *  - Each characters in sequence will translate into symbol id and stored in _symbolIDs.
+*/
+CDNA::CDNA(string sid, string sequence)
 {
-    sid = _sid;
-    sequence = _sequence;
+    this->_sequenceid = sid;
+    this->_sequence = sequence;
+    int i;
+	int temp;
+	this->_size = this->_sequence.size();
+	for(i=0;i<this->_size;i++){
+		temp = CDNA::getSymbolID(this->_sequence.at(i));
+		this->_symbolIDs.push_back(temp);
+	}
 }
 
-int CDNA::getSymbolByte(char symbol)
+/** a destructor, do nothing.  */
+CDNA::~CDNA()
+{
+
+}
+
+/**
+ * @override
+ * Return the size of DNA sequence.
+*/
+int CDNA::getSize()const{
+	return this->_size;
+}
+
+/**
+ * Return a integer vector contain symbols of DNA sequence.
+*/
+vector<int> CDNA::getSymbolIDs()const{
+	return this->_symbolIDs;
+}
+
+/**
+ * A static function to return symbol's ID.
+ * Get the symbol's id according to input symbol character.
+ * This function required a input param which is existed in DNASymbol data set.
+ * @param char symbol    A symbol waiting to get its ID.
+ * @return int           A int ID which is stand for input char.
+*/
+int CDNA::getSymbolID(char symbol)
 {
     int i;
     for(i=0;i<DNASYMBOLNUMBER;i++)
-        if(symbol == Symbols[i].abbr)
-            return Symbols[i].byte;
+        if(symbol == DNASymbols[i].abbr)
+            return DNASymbols[i].sid;
 	return -1;
 }
 
-vector<int> CDNA::getBytes(){
-	int i;
-	int sequenceSize = sequence.size();
-	vector<int> bytes;
-	int temp;
-	for(i=0;i<sequenceSize;i++){
-		temp = getSymbolByte(sequence.at(i));
-		bytes.push_back(temp);
-	}
-	return bytes;
-}
 
-int CDNA::getSize(){
-	return getBytes().size();
-}
-
-vector<shared_ptr<CDNA>> CDNA::tear(CDNA* dna, int fragmentLength){
-	int totalSize = dna->getSize() - fragmentLength;
-	string seq_id = dna->sid;
-	string seq = dna->sequence;
-	vector<shared_ptr<CDNA>> data;
-	for(int i=0;i<totalSize;i++){
-		shared_ptr<CDNA> temp(new CDNA(seq_id, seq.substr(i, fragmentLength)));
-		data.push_back(temp);
-	}
-	return data;
-}
-
+/**
+ * A static function to load data from a file.
+ * This function will get data from a format file, which contain some DNA informations,
+ *  and then save as a DNA type and store in a vector.
+ * Details:
+ *  - Firstly, load each DNA sequence according to the characters from the file,
+ *    the char '>' in the format files, stand for the beginning of DNA,
+ *    if the length of total characters more than maxSize the function will
+ *    stop loadding.
+ *  - Then, split DNA sequenct into many pieces, each piece's length is fragmentLength.
+ *  - Finally, save all pieces in a vector, and return this vector.
+ * A object definded shared_ptr<T>(a kind of smart pointer, existed in <memory>) will count
+ *  how much pointer point to it, and this counting called reference counting.
+ *  When reference counting reduces to 0, this object will destory automatically.
+ * By using shared_ptr<T>, we can ensure no memory leak.
+ * @return vector<shared_ptr<CDNA>>
+ *   - return a vector stored DNA fragments.
+ * 
+*/
 vector<shared_ptr<CDNA>> CDNA::loadData(string filename, int maxSize, int fragmentLength){
 	vector<shared_ptr<CDNA>> data;
 	
@@ -93,26 +135,19 @@ vector<shared_ptr<CDNA>> CDNA::loadData(string filename, int maxSize, int fragme
 		shared_ptr<CDNA> temp(new CDNA(ident, currentSequence));
 		dnas.push_back(temp);
 	}
-
-	CDNA* dna = dnas[0].get();
-	int totalSize = dna->getSize() - fragmentLength;
-	string seq_id = dna->sid;
-	string seq = dna->sequence;
-
-	for(int i=0;i<totalSize;i++){
-		shared_ptr<CDNA> temp(new CDNA(seq_id, seq.substr(i, fragmentLength)));
-		data.push_back(temp);
-	}
-	return data;
-	/**
-	for(i=0;i<dnas.size();i++)
-	{
-		vector<CDNA> tmp;
-		tmp = tear(dnas[i], fragmentLength);
-		for(int j=0;j<tmp.size();j++){
-			data.push_back(tmp[j]);
+	for(i=0;i<dnas.size();i++){
+		CDNA* dna = dnas[i].get();
+		int totalSize = dna->getSize() - fragmentLength;
+		string seq_id = dna->_sequenceid;
+		string seq = dna->_sequence;
+		for(int j=0;j<totalSize;j++){
+			shared_ptr<CDNA> temp(new CDNA(seq_id, seq.substr(j, fragmentLength)));
+			data.push_back(temp);
 		}
 	}
 	return data;
-	*/
 }
+
+/**
+ * @}  //CDNA
+*/

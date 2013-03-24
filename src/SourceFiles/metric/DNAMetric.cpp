@@ -1,5 +1,11 @@
 #include "../../HeaderFiles/metric/DNAMetric.h"
 
+/** @addtogroup CDNAMetric
+ *  @{
+ * This class define a metric to compute distance of two DNA sequence.
+ */
+
+/** A edit distance matrix of each two DNA symbols. */
 double CDNAMetric::EditDistanceMatrix[DNASYMBOLNUMBER][DNASYMBOLNUMBER] = 
 {
     {  0,  1,  1,  1,0.5,  1,0.5,  1,0.5,  1,  1,0.5,0.5,0.5,0.5}, // A Adenine 
@@ -19,11 +25,22 @@ double CDNAMetric::EditDistanceMatrix[DNASYMBOLNUMBER][DNASYMBOLNUMBER] =
     {0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,  0}  // N Anybase (A,C,G,T,or U) 
 };
 
+/** A no parameter constructor, do nothing */
 CDNAMetric::CDNAMetric()
 {
 
 }
 
+/** A destructor, do nothing */
+CDNAMetric::~CDNAMetric()
+{
+
+}
+
+/**
+ * @override
+ * This method return two IndexObjects' distance.
+ */
 double CDNAMetric::getDistance(CIndexObject* one, CIndexObject* two)
 {
 	CDNA* new_one = (CDNA*) one;
@@ -31,6 +48,10 @@ double CDNAMetric::getDistance(CIndexObject* one, CIndexObject* two)
 	return getDistance(new_one, new_two);
 }
 
+/**
+ * This method return two DNA' distance.
+ *  - Sum up edit distance of two DNA.
+ */
 double CDNAMetric::getDistance(CDNA* one, CDNA* two)
 {
 	int i;
@@ -41,10 +62,14 @@ double CDNAMetric::getDistance(CDNA* one, CDNA* two)
 		return -1.0;
 	}
 	double dist = 0.0;
-	vector<int> one_byte = one->getBytes();
-	vector<int> two_byte = two->getBytes();
+	vector<int> one_byte = one->getSymbolIDs();
+	vector<int> two_byte = two->getSymbolIDs();
 	for(i=0;i<one_size;i++){
 		dist = dist + CDNAMetric::EditDistanceMatrix[one_byte[i]][two_byte[i]];
 	}
 	return dist;
 }
+
+/**
+ * @}  //CDNAMetric
+*/
