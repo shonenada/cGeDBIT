@@ -62,8 +62,8 @@ double CRNAMetric::getDistance(CRNA* one, CRNA* two)
 		return -1.0;
 	}
 	double dist = 0.0;
-	vector<int> one_byte = one->getBytes();
-	vector<int> two_byte = two->getBytes();
+	vector<int> one_byte = one->getSymbolIDs();
+	vector<int> two_byte = two->getSymbolIDs();
 	for(i=0;i<one_size;i++){
 		dist = dist + CRNAMetric::EditDistanceMatrix[one_byte[i]][two_byte[i]];
 	}
