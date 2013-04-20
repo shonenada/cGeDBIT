@@ -43,8 +43,8 @@ CRNAMetric::~CRNAMetric()
  */
 double CRNAMetric::getDistance(CIndexObject* one, CIndexObject* two)
 {
-	CRNA* new_one = (CRNA*) one;
-	CRNA* new_two = (CRNA*) two;
+	CRNA* new_one = static_cast<CRNA*>(one);
+	CRNA* new_two = static_cast<CRNA*>(two);
 	return getDistance(new_one, new_two);
 }
 

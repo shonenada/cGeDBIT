@@ -43,8 +43,8 @@ CDNAMetric::~CDNAMetric()
  */
 double CDNAMetric::getDistance(CIndexObject* one, CIndexObject* two)
 {
-	CDNA* new_one = (CDNA*) one;
-	CDNA* new_two = (CDNA*) two;
+	CDNA* new_one = static_cast<CDNA*>(one);
+	CDNA* new_two = static_cast<CDNA*>(two);
 	return getDistance(new_one, new_two);
 }
 

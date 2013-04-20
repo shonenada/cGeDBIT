@@ -49,8 +49,8 @@ CPeptideMetric::~CPeptideMetric()
  */
 double CPeptideMetric::getDistance(CIndexObject* one, CIndexObject* two)
 {
-	CPeptide* new_one = (CPeptide*) one;
-	CPeptide* new_two = (CPeptide*) two;
+	CPeptide* new_one = static_cast<CPeptide*>(one);
+	CPeptide* new_two = static_cast<CPeptide*>(two);
 	return getDistance(new_one, new_two);
 }
 
