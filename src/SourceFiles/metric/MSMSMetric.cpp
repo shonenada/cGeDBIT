@@ -1,6 +1,6 @@
-#include "..\..\HeaderFiles\metric\Metric.h"
-#include "..\..\HeaderFiles\metric\MSMSMetric.h"
-#include "..\..\HeaderFiles\objects\TandemSpectra.h"
+#include "../../HeaderFiles/metric/Metric.h"
+#include "../../HeaderFiles/metric/MSMSMetric.h"
+#include "../../HeaderFiles/objects/TandemSpectra.h"
 
 #include<iostream>
 #include<cmath>

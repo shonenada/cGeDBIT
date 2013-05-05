@@ -1,4 +1,4 @@
-#include "..\..\HeaderFiles\indexalgorithm\FFTPivotSelectionMethod.h"
+#include "../../HeaderFiles/indexalgorithm/FFTPivotSelectionMethod.h"
 
 #include <cfloat>
 

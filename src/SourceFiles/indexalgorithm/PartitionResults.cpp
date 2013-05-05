@@ -1,4 +1,4 @@
-#include "..\..\HeaderFiles\indexalgorithm\PartitionResults.h"
+#include "../../HeaderFiles/indexalgorithm/PartitionResults.h"
 
 
 CPartitionResults::CPartitionResults(vector<int> &offsets,vector<vector<double>> &lowerBounds,vector<vector<double>> &upperBounds)

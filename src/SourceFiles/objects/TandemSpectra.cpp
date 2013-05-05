@@ -1,4 +1,4 @@
-#include "..\..\HeaderFiles\objects\TandemSpectra.h"
+#include "../../HeaderFiles/objects/TandemSpectra.h"
 
 #include <fstream >
 #include <vector>

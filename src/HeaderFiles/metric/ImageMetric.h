@@ -6,7 +6,7 @@
  * <code>ImageMetric</code> may not work for other datasets.
  */
 #include "Metric.h"
-#include "..\objects\Image.h"
+#include "../objects/Image.h"
 #include "../objects/IndexObject.h"
 
 

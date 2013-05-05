@@ -22,19 +22,19 @@ YOUR INFORMATION HANDLING SYSTEM OR OTHERWISE, EVEN If WE ARE
 EXPRESSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. 
 */
 
-#include "..\HeaderFiles\objects\DoubleVector.h"
-#include "..\HeaderFiles\metric\Metric.h"
-#include "..\HeaderFiles\metric\EuclideanDistance.h"
-#include "..\HeaderFiles\index\index.h"
-#include "..\HeaderFiles\index\MVPIndex.h"
-#include "..\HeaderFiles\index\ListIndex.h"
-#include "..\HeaderFiles\indexalgorithm\PartitionMethod.h"
-#include "..\HeaderFiles\indexalgorithm\PivotSelectionMethod.h"
-#include "..\HeaderFiles\indexalgorithm\FFTPivotSelectionMethod.h"
-#include "..\HeaderFiles\indexalgorithm\BalancePartitionMethod.h"
-#include "..\HeaderFiles\query\Query.h"
-#include "..\HeaderFiles\query\RangeQuery.h"
-#include "..\HeaderFiles\util\getopt.h"
+#include "../HeaderFiles/objects/DoubleVector.h"
+#include "../HeaderFiles/metric/Metric.h"
+#include "../HeaderFiles/metric/EuclideanDistance.h"
+#include "../HeaderFiles/index/index.h"
+#include "../HeaderFiles/index/MVPIndex.h"
+#include "../HeaderFiles/index/ListIndex.h"
+#include "../HeaderFiles/indexalgorithm/PartitionMethod.h"
+#include "../HeaderFiles/indexalgorithm/PivotSelectionMethod.h"
+#include "../HeaderFiles/indexalgorithm/FFTPivotSelectionMethod.h"
+#include "../HeaderFiles/indexalgorithm/BalancePartitionMethod.h"
+#include "../HeaderFiles/query/Query.h"
+#include "../HeaderFiles/query/RangeQuery.h"
+#include "../HeaderFiles/util/getopt.h"
 
 
 #include <iostream>

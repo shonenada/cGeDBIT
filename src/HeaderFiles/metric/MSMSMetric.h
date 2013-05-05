@@ -1,9 +1,9 @@
 #ifndef MSMSMETRIC_H
 #define MSMSMETRIC_H
 
-#include "..\..\HeaderFiles\metric\Metric.h"
-#include "..\..\HeaderFiles\objects\IndexObject.h"
-#include "..\..\HeaderFiles\objects\TandemSpectra.h"
+#include "../../HeaderFiles/metric/Metric.h"
+#include "../../HeaderFiles/objects/IndexObject.h"
+#include "../../HeaderFiles/objects/TandemSpectra.h"
 
 /**
 * MSMSMetric is an implementation of a fuzzy cosine distance metric for comparing tandem spectra
