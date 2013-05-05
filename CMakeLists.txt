@@ -50,7 +50,7 @@ add_library(cGeDBIT_objects
             src/SourceFiles/objects/RNA.cpp
             src/SourceFiles/objects/StringObject.cpp
             src/SourceFiles/objects/TandemSpectra.cpp
-            src/SourceFiles/type/DoubleIndexObjectPair.cpp)
+            src/SourceFiles/objects/DoubleIndexObjectPair.cpp)
 
 # Add query library cGeDBIT
 add_library(cGeDBIT_querys
