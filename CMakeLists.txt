@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 2.8)
 project(cGeDBIT)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+
 # Set configure for boost library
-# set(BOOST_ROOT /usr/local/include/boost-1_53)
 set(BOOST_INCLUDE_DIR /usr/local/include/boost-1_53)
 set(BOOST_LIBRARY_DIR /usr/local/lib)
 
 # Find boost library
-find_package(Boost )
+find_package(Boost)
 include_directories(${BOOST_INCLUDE_DIR})
 link_directories(${BOOST_LIBRARY_DIR})
 
@@ -74,5 +75,5 @@ add_executable(cGeDBIT src/app/BuildMVPIndex.cpp)
 # Link libraries.
 target_link_libraries(cGeDBIT cGeDBIT_indexs cGeDBIT_indexalgorithms
                       cGeDBIT_metrics cGeDBIT_objects cGeDBIT_querys
-                      cGeDBIT_utils ${Boost_LIBRARIES})
+                      cGeDBIT_utils ${BOOST_LIBRARIES})
 
