@@ -1,7 +1,7 @@
 #ifndef PARTITIONMETHOD_H
 #define PARTITIONMETHOD_H
 
-#include "../metric/Metric.h"
+#include "..\metric\Metric.h"
 
 #include "PartitionResults.h"
 /**@defgroup PARTITIONMETHOD SQAI:PARTITIONMETHOD

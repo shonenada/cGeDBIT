@@ -3,8 +3,8 @@
 #include "Index.h"
 #include "IndexNode.h"
 
-#include "../indexalgorithm/PartitionMethod.h"
-#include "../indexalgorithm/PivotSelectionMethod.h"
+#include "..\indexalgorithm\PartitionMethod.h"
+#include "..\indexalgorithm\PivotSelectionMethod.h"
 
 #include "MVPInternalNode.h"
 #include "MVPLeafNode.h"

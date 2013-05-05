@@ -1,8 +1,9 @@
-#include "../../HeaderFiles/indexalgorithm/BalancePartitionMethod.h"
-#include "../../HeaderFiles/type/DoubleIndexObjectPair.h"
-#include "../../HeaderFiles/index/MVPInternalNode.h"
+#include "..\..\HeaderFiles\indexalgorithm\BalancePartitionMethod.h"
+#include "..\..\HeaderFiles\type\DoubleIndexObjectPair.h"
+#include "..\..\HeaderFiles\index\MVPInternalNode.h"
 
 #include <cmath>
+#include <algorithm>
 
 /** @addtogroup CBalancePartitionMethod
 *  @{
@@ -19,45 +20,61 @@ CBalancePartitionMethod::~CBalancePartitionMethod()
 }
 
 /** Sort DoubleIndexObjectPair array where element's index belongs [fromIndex, toIndex) */
-void CBalancePartitionMethod::sort(vector<CDoubleIndexObjectPair>& arr, int fromIndex, int toIndex)
+ /** 
+    * This is method sorts a list of DoubleIndexObjectPair.
+    * This sort method using quick sort.
+    * 
+    * CDoubleIndexObjectPair  array        the list waiting to be sorted.
+    * int                     fromIndex    minimum index of the list.
+    * int                     toIndex      maximun index of the list.
+*/
+void sort(CMetric* metric,vector<CIndexObject*> &arr,CIndexObject* pivot, int fromIndex, int toIndex)
 {
-	int i, j;
-	int low = fromIndex;
-	int high = toIndex;
-	CDoubleIndexObjectPair temp;
-	if ( low >= high )
+	int i=fromIndex, j=toIndex;
+
+	CIndexObject *temp = arr[fromIndex];
+	double tempDistance=metric->getDistance(temp,pivot);
+
+	if ( fromIndex < toIndex )
 	{
-		return ;
-	}
-	i = low;
-	j = high-1;
-	temp = arr[i];
-	while( i < j )
-	{
-		while( i<j && temp.getDouble() < arr[j].getDouble() )
-		{
-			j --;
-		}
-		if (i<j){
-			arr[i++] = arr[j];
-		}
-		while( i<j && arr[i].getDouble() <= temp.getDouble() )
-		{
-			i++;
-		}
-		if (i<j)
-		{
-			arr[j--] = arr[i];
-		}
-	}
-	arr[i] = temp;
-	sort(arr, low, --j);
-	sort(arr, ++i, high);
+	    while( i < j )
+	    {
+		    while( i<j && tempDistance<= metric->getDistance(arr[j],pivot))
+		    {
+			    j --;
+		    }
+		    if (i<j)
+            {
+			    arr[i++] = arr[j];
+		    }
+		    while( i<j && metric->getDistance(arr[i],pivot) <= tempDistance)
+		    {
+			    i++;
+		    }
+		    if (i<j)
+		    {
+			    arr[j--] = arr[i];
+		    }
+	    }
+	    arr[i] = temp;
+	    sort(metric,arr,pivot,fromIndex, i-1);
+	    sort(metric,arr,pivot,i+1,toIndex);
+    }
 }
+
+
 
 CPartitionResults CBalancePartitionMethod::partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data,int first,int size,int maxRadius,int numPartitions,int maxLeafSize,double middleProportion)
 {
 	return partition( metric,  pivots , data, first,  size,  numPartitions, maxLeafSize);
+}
+
+void showDistance(CMetric *metric,CIndexObject* pivot,vector<CIndexObject*> &objectList,int start,int end)
+{
+    for(vector<CIndexObject*>::size_type i=start;i!=end;i++)
+    {
+        cout<<"object "<<i<<" distance is:"<<metric->getDistance(pivot,objectList[i])<<endl;
+    }
 }
 
 CPartitionResults CBalancePartitionMethod::partition(CMetric *metric, const vector<CIndexObject*> &pivots ,vector<CIndexObject*> &data, int first, int size, int numPartitions, int maxLeafSize)
@@ -84,11 +101,7 @@ CPartitionResults CBalancePartitionMethod::partition(CMetric *metric, const vect
 
 	vector<CDoubleIndexObjectPair> wrapper;
 
-	for(int i=first; i<first+size; i++)
-	{
-		CDoubleIndexObjectPair temp(0, data.at(i));
-		wrapper.push_back(temp);
-	}
+	
 
 	/** split data  */
 
@@ -111,17 +124,30 @@ CPartitionResults CBalancePartitionMethod::partition(CMetric *metric, const vect
 	/** compute distance to the current VP */
 	for(int i=0;i<numPivots;i++)
 	{
-		for(int j=0;j<size;j++)
-		{
-			CIndexObject* temp = (CIndexObject*) wrapper[j].getObject();
-			wrapper[j].setDouble(metric->getDistance(pivots[i], temp));if(wrapper[j].getDouble()==0)cout<<"dis=0:"<<j<<endl;
-		}
-
+        
 		/** sort each part.  */
 		for(int j=0; j<clusterNumber; j++)
 		{
-			this->sort(wrapper, clusterOffset[j]-first, clusterOffset[j+1]-first);
+            //showDistance(metric,pivots[i],data,clusterOffset[j],clusterOffset[j+1]);
+			sort(metric,data,pivots[i],clusterOffset[j], clusterOffset[j+1]-1);
+            //showDistance(metric,pivots[i],data,clusterOffset[j],clusterOffset[j+1]);
 		}
+        
+        wrapper.clear();
+
+        for(int p=first; p<first+size; p++)
+	    {
+		    CDoubleIndexObjectPair temp(metric->getDistance(pivots[i],data.at(p)), data.at(p));
+		    wrapper.push_back(temp);
+	    }
+
+        /*for(int j=0;j<size;j++)
+		{
+			CIndexObject* temp = (CIndexObject*) wrapper[j].getObject();
+			wrapper[j].setDouble(metric->getDistance(pivots[i], temp));if(wrapper[j].getDouble()==0)cout<<"dis=0:"<<j<<endl;
+		}*/
+
+		
 
 		const int nextClusterNumber = clusterNumber * numPartitions;
 		vector<int> nextClusterOffset(nextClusterNumber + 1);
@@ -181,7 +207,7 @@ CPartitionResults CBalancePartitionMethod::partition(CMetric *metric, const vect
 
 			int* firstPointWithDistinctDistance = new int[distinctSize + 1];
 			double* distinctDistance = new double[distinctSize];
-			firstPointWithDistinctDistance[0] = first;                                     //first
+			firstPointWithDistinctDistance[0] =first;                                     //first
 			firstPointWithDistinctDistance[distinctSize] = clusterSize+first;
 			distinctDistance[0] = wrapper[clusterOffset[j]-first].getDouble();
 
@@ -247,7 +273,7 @@ CPartitionResults CBalancePartitionMethod::partition(CMetric *metric, const vect
 				nextClusterOffset[j * numPartitions + k + 1] = clusterOffset[j + 1];
 
 				const int firstChild = j * clusterCardinality + k * nextClusterCardinality;
-				for(int temp = firstChild;temp<firstChild;temp++)
+				for(int temp = firstChild;temp<firstChild+nextClusterCardinality;temp++)
 				{
 					lower[i][temp] = distinctDistance[startingDistinctSet];
 					upper[i][temp] = distinctDistance[distinctSize - 1];

@@ -167,10 +167,10 @@ CPartitionResults CEcludedMiddlePartitionMethod::partition(CMetric *metric, cons
 
 
 
-    vector<vector<double> > lowerBounds;	
+    vector<vector<double>> lowerBounds;	
     lowerBounds.push_back(LowerBound);
 
-    vector<vector<double> > upperBounds;
+    vector<vector<double>> upperBounds;
     upperBounds.push_back(upperBound);
                
     return CPartitionResults(offsets,lowerBounds,upperBounds);

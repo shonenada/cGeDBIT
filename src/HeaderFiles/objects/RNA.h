@@ -129,7 +129,7 @@ public:
      *   - return a vector stored RNA fragments.
      * 
     */
-    static vector<shared_ptr<CRNA> > loadData(string filename, int maxSize, int fragmentLength);
+    static vector<shared_ptr<CRNA>> loadData(string filename, int maxSize, int fragmentLength);
 
 };
 /**

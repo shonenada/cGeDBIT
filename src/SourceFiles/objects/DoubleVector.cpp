@@ -7,7 +7,7 @@ CDoubleVector::CDoubleVector(void)
 	size=0;
 }
 
-CDoubleVector::CDoubleVector(double *_data, int _length)
+CDoubleVector::CDoubleVector(double *_data,int _length)
 {
     dim = _length;
     dataList = new double[dim];
@@ -42,12 +42,12 @@ vector<CIndexObject*> CDoubleVector::loadData(string _fileName)
 {
 	ifstream in(_fileName);
 	int num, dim, i, j;
-	vector<CIndexObject*> indexObjectVector;
+	vector<CIndexObject*> a;
 	double* data=NULL;
-	CIndexObject* temp = NULL;
+	CIndexObject* temp=NULL;
 
 	in >> num >> dim;	
-
+	
 	for(i=0; i<num; i++)
 	{
 		data = new double[dim];
@@ -57,10 +57,10 @@ vector<CIndexObject*> CDoubleVector::loadData(string _fileName)
 		}
 		
 		temp = new CDoubleVector(data, dim);
-		indexObjectVector.push_back(temp);
+		a.push_back(temp);
 	}
 
-    return indexObjectVector;
+    return a;
 }
 
 

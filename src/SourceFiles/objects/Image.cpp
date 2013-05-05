@@ -5,20 +5,17 @@
  * numbers representing the key for image object.
  * image dataset, might not work for other datasets.
  * 
- * @author Wenguo Liu, Ru Mao, Willard
- * @version 2013.03.27
  */
 
-/**
+/*
  * A constructor
- *  @param string sid          Identity string of this DNA sequence.
- *  @param string sequence     Sequence of this DNA.
- *  Details:
- *  - The first string parameter will be assigned to _sequenceid.
- *  - The second string parameter will be assigned to _sequence.
- *  - Property _size will be assigned by _sequence's size.
- *  - Each characters in sequence will translate into symbol id and stored in _symbolIDs.
-*/
+ * 
+ * Details:
+ * - The m_Feas_Len will be initialized to '66'.
+ * - The m_Feas will be initialized to '0'.
+ * - The max_Dist_Len will be initialized to '3'. 
+ * - The max_Dist will be initialized to '1.0', '60.0', '1.0'.
+ */
 CImage::CImage()
 {
 	m_Feas_Len = 66;
@@ -33,9 +30,14 @@ CImage::CImage()
 	max_Dist[2]=1.0;
 }
 
-/**
- * @param FLen
- * @param feas an array of floats over which the feature values are defined.
+/*
+ * A constructor
+ * @param FLen : The length of the feas[]
+ * @param feas : An array of floats over which the feature values are defined.
+ *
+ * Details:
+ * - The FLen will be initialized to m_Feas_Len. 
+ * - The feas will be initialized to m_Feas.
  */
 CImage::CImage(int FLen , float feas[])
 {
@@ -47,11 +49,18 @@ CImage::CImage(int FLen , float feas[])
 		m_Feas[i] = feas[i];
 }
 
-/**
- * @param FLen
- * @param DLen
- * @param feas an array of floats over which the feature values are defined.
- * @param maxDist
+/* 
+ * A constructor
+ * @param FLen : The length of the feas[]
+ * @param DLen : The length of the maxDist[]
+ * @param feas : an array of floats over which the feature values are defined.
+ * @param maxDist : an array of floats over which the dis values are defined.
+ * 
+ * Details:
+ * - The FLen will be initialized to m_Feas_Len. 
+ * - The feas will be initialized to m_Feas.
+ * - The DLen will be initialized to max_Dist_Len.
+ * - The maxDist will be initialized to max_Dist.
  */
 CImage::CImage(int FLen , int DLen , float feas[] , double maxDist[])
 {  
@@ -75,29 +84,51 @@ CImage::CImage(int FLen , int DLen , float feas[] , double maxDist[])
 	}
 }
 
+/*
+ * A destructor
+ *
+ * Details:
+ * - The m_Feas and max_Dist will be deleted.
+ */
 CImage::~CImage()
 {
 	delete[] m_Feas;
 	delete[] max_Dist;
 }
 
-/**
+/*
  * @param index
- * @return
+ * @return 
+ *
+ * Details:
+ * - Returns the value of index subscript corresponds in m_Feas
  */
 float CImage::getFeature(int index)
 {
 	return m_Feas[index];
 }
 
-/**
- * @Override
+/*
+ * @return 
+ *
+ * Details:
+ * - Returns the m_Feas_Len.
  */
 int CImage::getSize()
 {
 	return m_Feas_Len;
 }
-
+/*
+ * @param CIndexObject *oThat
+ *
+ * Details:
+ * - The CIndexObject types of object will be changed into CImage types.
+ * - Compare the CIndexObject types of object to the CImage types of object.
+ * - If "this" is equal to "that", then returns '0'.
+ * - If the length of "this" is larger than the length of "that", then return '-1'.
+ * - If the length of "that" is larger than the length of "this", then return '1'.
+ * - If their length is the same, then compare the features one by one.
+ */
 int CImage::compareTo(CIndexObject *oThat)
 {
 	CImage  *that = dynamic_cast<CImage *> (oThat);//将CIndexObject对象指针转化为CImage对象指针 
@@ -123,7 +154,7 @@ int CImage::compareTo(CIndexObject *oThat)
 	}
 }
 
-bool CImage::equals(CIndexObject *other)
+/*bool CImage::equals(CIndexObject *other)
 {
 	 if (other == this)
 		 return true;
@@ -140,8 +171,13 @@ bool CImage::equals(CIndexObject *other)
 		 }
 	 }
      return true;
-}
+}*/
 
+/*
+ * Detail:
+ * - A string will be defined.
+ * - Some details will be added to the string.
+ */
 string CImage::toString()
 {
 	string result = "ImageKeyObject, length :";
@@ -156,6 +192,24 @@ string CImage::toString()
 	return result;
 }
 
+/* 
+ * 
+*/
+int CImage::hashCode()
+{
+	int result = 17;
+	for (int i = 0; i < m_Feas_Len; i++)
+	{
+		result = 37 * result + m_Feas[i];
+	}
+	return result;
+}
+
+/**
+ * @param string fileName : The name of the file containing the data
+ * @param int cImage_Num : The number of datas
+ * @param int feas_Num : The number of features
+ */
 vector<CIndexObject*> CImage::loadData(string fileName , int cImage_Num, int  feas_Num)
 {
 	ifstream in(fileName);

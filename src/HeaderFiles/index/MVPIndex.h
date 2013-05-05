@@ -1,8 +1,8 @@
 #ifndef MVPINDEX_H
 #define MAPINDEX_H
 
-#include "../indexalgorithm/PartitionMethod.h"
-#include "../indexalgorithm/PivotSelectionMethod.h"
+#include "..\indexalgorithm\PartitionMethod.h"
+#include "..\indexalgorithm\PivotSelectionMethod.h"
 
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/vector.hpp>
@@ -38,7 +38,7 @@ public:
  * @param maxLeafSize: the maxmum number of objects in a leaf node of mvp-tree
  * @param maxPathLength: the maxmum number of distance values stored in a single leaf node, each distance value represent the distance from the object in every leaf node to the pivots in the parent node of the mvp-tree
 */
-	CMVPIndex(vector<CIndexObject*> &dataObjects,CMetric *metric,CPivotSelectionMethod* psm,CPartitionMethod* pm,int numPivot,int singlePivotFanout,int maxLeafSize,int maxPathLength);
+	CMVPIndex(vector<CIndexObject*> &dataObjects,CMetric *metric,CPivotSelectionMethod* psm,CPartitionMethod* pm,int numPivot,int singlePivotFanout,int maxLeafSize);
 
 	/** destructor */
 	~CMVPIndex();
@@ -54,11 +54,7 @@ public:
 	*/
 	vector<CIndexObject*> search(CQuery* q);
 
-	/** fucntion to create an root of mvp-tree
-	 * @param task encapsulated the information which will be used to create the root node of mvp tree
-	 * @return return the address of the mvp-tree root
-	*/
-	CIndexNode* createRoot(Task* task);
+	
 
 	/**function to create an internal node
 	 * @param task encapsulated the information which will be used to create a internal node of mvp tree
@@ -108,7 +104,6 @@ private:
 		ar & singlePivotFanout;
 		ar & totalSize;
 		ar & maxLeafSize;
-		ar & maxPathLength;
 		ar & numLeaf;
 		ar & numInternalNodes;
 	}
@@ -140,9 +135,6 @@ private:
 
 	/** the maximum number of data objects in a leaf node */
 	int maxLeafSize;
-
-	/**the number of distances which are calculated previously and stored in a leaf node*/
-	int maxPathLength;
 
 	/** the number of leaf nodes */
 	int numLeaf;

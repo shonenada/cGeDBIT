@@ -25,14 +25,14 @@ public:
 		@param distance contains all the distance values from every pivots to each of the object in the object list of this node.the number of rows in this vector is euqual to the number of pivots in this node while the number of column is equal to the length of dataObjects, which is the second parameter of this function
 		@param the height of current node
 	*/
-	CMVPLeafNode(vector<CIndexObject*> pivots,vector<CIndexObject*>dataObjects,vector<vector<double> > distance,int height);
+	CMVPLeafNode(vector<CIndexObject*> &pivots,vector<CIndexObject*> &dataObjects,vector<vector<double>> &distance,int height);
 	/**destructor*/
 	~CMVPLeafNode();
 
 	/**return the distance value list according to the pivot index in the parameter of this function
 	   @param pivotIndex the index of pivot in the pivot list
 	*/
-	vector<double> getDataPointPivotDistance(int pivotIndex);
+	vector<double>& getDataPointPivotDistance(int pivotIndex);
 	
 	/**return the number of objects in this node*/
 	int numChildren();
@@ -41,7 +41,7 @@ public:
 	CIndexObject* getObject(int childIndex);
 
 	/**return all the address of object in this node trough a vector*/
-	vector<CIndexObject*> getObjects();
+	vector<CIndexObject*>& getObjects();
 
 	/**traversal from this internal node to its every child to search out the proper objects base on the parameters
 		@para q this object is given by the user according which kind of query does the user want to do later, there is some basic information packaged in the object  like the search radius if the user want do a range query search latter.
@@ -61,12 +61,10 @@ private:
 		ar & distance;
 	}
 
-	/**all the address of pivots of this node is stored in this vector*/
-	vector<CIndexObject*> pivots;
 	/**all the address of objects that reside in this node is stored in this vector*/
 	vector<CIndexObject*> dataObjects;
 	/**contains all the distance values from every pivots to each of the object in the object list of this node.the number of rows in this vector is euqual to the number of pivots in this node while the number of column is equal to the length of dataObjects, which is the second parameter of this function*/
-	vector<vector<double> > distance;
+	vector<vector<double>> distance;
 };
 
 /**@}*/

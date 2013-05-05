@@ -53,7 +53,7 @@ void batchBulkLoad(char* inFileName, char* outFileName)
 
 	CDoubleVector *cd=new CDoubleVector(d,dim);
 
-	double radius=200;
+	double radius=69;//113;
 	CRangeQuery *q=new CRangeQuery(radius,cd);
 
 	//search in the index
@@ -63,7 +63,7 @@ void batchBulkLoad(char* inFileName, char* outFileName)
 	for(vector<CIndexObject*>::size_type i=0;i!=ve.size();i++)
 	{
 		CDoubleVector *cdo=(CDoubleVector*)(ve[i]);
-
+        cout<<"distance q and cdo:"<<m->getDistance(q->getQueryObject(),cdo)<<endl;
 		for(int j=0;j<cdo->getLen();j++)
 		{
 			if(j==0)

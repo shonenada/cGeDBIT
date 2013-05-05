@@ -40,7 +40,7 @@ vector<int> CFFTPivotSelectionMethod::selectPivots(CMetric *metric, vector<CInde
 
 vector<int> CFFTPivotSelectionMethod::selectPivots(CMetric *metric, vector<CIndexObject*> &data,int first, int dataSize, int numPivots, int firstPivot)
 {
-	if (numPivots >= dataSize)
+	if (numPivots >= dataSize) //if the number of pivots required is bigger than dataSize then return all the points in the data(duplicate removed).
 	{
 		vector<int>* pivots = new vector<int>;
 		for (int i = first; i < first+dataSize + 0; i++)
@@ -105,15 +105,20 @@ vector<int> CFFTPivotSelectionMethod::selectPivots(CMetric *metric, vector<CInde
 	while ((returnSize < numPivots) && (indices[returnSize] >= 0))
 		returnSize++;
 
+	// to decide the size of the result vector.
 	if (returnSize > numPivots)
 		returnSize = numPivots;
 	vector<int> result;
-		for(int i=0; i<returnSize; i++)
-			result.push_back(indices[i]);
+	for(int i=0; i<returnSize; i++)
+		result.push_back(indices[i]);
 	return result;
 
 
 }
+
+/**
+*to check the array of pivots, remove the duplicate.
+*/
 vector<int> removeDuplicate(CMetric *metric,vector<CIndexObject*> data,vector<int> &pivots,int first,int dataSize)
 {
 	const int size = dataSize;
@@ -122,21 +127,21 @@ vector<int> removeDuplicate(CMetric *metric,vector<CIndexObject*> data,vector<in
         isDuplicate[i] = false;
     for (int i=0; i<size-1; i++)
     {
-        if (isDuplicate[i])
+        if (isDuplicate[i])//if the point has been removed, don't need to check the duplication.
             continue;
         for (int j=i+1; j<size; j++)
         {
             if (isDuplicate[j])
                 continue;
-            if (metric->getDistance(data[i+first], data[j+first]) == 0)
+            if (metric->getDistance(data[i+first], data[j+first]) == 0) //to check if two points are the same point.
                 isDuplicate[j] = true;
         }
     }
         
     int counter = 0;
-    for (int i=0; i< size; i++)
+    for (int i=0; i< size; i++) //to get the number of points which are not duplicate.
 	{
-        if (!isDuplicate[i])
+        if (!isDuplicate[i]) 
             counter ++;
 	}
         

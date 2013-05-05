@@ -43,16 +43,7 @@ public:
 
 	/***/
 	virtual CPartitionResults partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data,int first,int size,int maxRadius,int numPartitions,int maxLeafSize,double middleProportion);
-private:
-    /** 
-     * This is method sorts a list of DoubleIndexObjectPair.
-     * This sort method using quick sort.
-     * 
-     * CDoubleIndexObjectPair  array        the list waiting to be sorted.
-     * int                     fromIndex    minimum index of the list.
-     * int                     toIndex      maximun index of the list.
-     */
-    void sort(vector<CDoubleIndexObjectPair>& arr, int fromIndex, int toIndex);
+private:  
 
 	friend class boost::serialization::access;
 

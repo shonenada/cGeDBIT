@@ -1,7 +1,7 @@
 #ifndef RANGEQUERY_H
 #define RANGEQUERY_H
 
-#include "Query.h"
+#include "query.h"
 
 class CRangeQuery :
 	public CQuery

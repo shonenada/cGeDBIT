@@ -1,4 +1,4 @@
-#include "../../HeaderFiles/index/MVPIndex.h"
+#include "..\..\HeaderFiles\index\MVPIndex.h"
 
 /**In the whole process of building a mvp-tree, some same openration like creating a internal node or leaf node could be encapsulated as a task and then put the task into a queue or stack for the iteration of building child trees*/
 class Task 
@@ -31,8 +31,10 @@ public:
 
 private:
 	/**constructor*/
-	Task()
+	Task():dataList(*(new vector<CIndexObject*>))
 	{
+        /*vector<CIndexObject*> ve;
+        this->dataList=ve;*/
 		this->parentIndex=0;
 		this->myIndex=0;
 		this->myHeight=0;
@@ -42,7 +44,6 @@ private:
 
 
 		this->numPivots=0;
-
 
 	};
 
@@ -54,9 +55,9 @@ private:
  *	@param myIndex current node index in parent node's children list
  *	@param myHeight height of current node
 */
-	Task(vector<CIndexObject*> &dataList,CIndexNode *parentIndex,int start,int end,int myIndex,int myHeight)
+	Task(vector<CIndexObject*> &dataList,CIndexNode *parentIndex,int start,int end,int myIndex,int myHeight):dataList(dataList)
 	{
-		this->dataList=dataList;
+		//this->dataList=dataList;
 		this->parentIndex=parentIndex;
 		this->myIndex=myIndex;
 
@@ -71,7 +72,7 @@ private:
 	};
 
 	/**a vector contains the address of all the obejct over which this mvp tree is built*/
-	vector<CIndexObject*> dataList;
+	vector<CIndexObject*> &dataList;
 
 	/**address of parent node*/
 	CIndexNode* parentIndex;
@@ -90,7 +91,6 @@ private:
 
 	/**number of pivots in a node of mvp tree*/
 	int numPivots;
-
 };
 
 /**move the pivot to the end of a object list partition
@@ -195,7 +195,6 @@ CMVPIndex::CMVPIndex()
 	singlePivotFanout=0;
 
 	maxLeafSize=0;
-	maxPathLength=0;
 
 	numPivots=0;
 	numLeaf=0;
@@ -214,7 +213,7 @@ CMVPIndex::CMVPIndex()
  * @param maxLeafSize: the maxmum number of objects in a leaf node of mvp-tree
  * @param maxPathLength: the maxmum number of distance values stored in a single leaf node, each distance value represent the distance from the object in every leaf node to the pivots in the parent node of the mvp-tree
 */
-CMVPIndex::CMVPIndex(vector<CIndexObject*> &dataObjects,CMetric *metric,CPivotSelectionMethod* psm,CPartitionMethod* pm,int numPivots,int singlePivotFanout,int maxLeafSize,int maxPathLength)
+CMVPIndex::CMVPIndex(vector<CIndexObject*> &dataObjects,CMetric *metric,CPivotSelectionMethod* psm,CPartitionMethod* pm,int numPivots,int singlePivotFanout,int maxLeafSize)
 {
 	this->root=0;
 	this->metric=metric;
@@ -224,7 +223,6 @@ CMVPIndex::CMVPIndex(vector<CIndexObject*> &dataObjects,CMetric *metric,CPivotSe
 	this->singlePivotFanout=singlePivotFanout;
 	this->totalSize=dataObjects.size();
 	this->maxLeafSize=maxLeafSize;
-	this->maxPathLength=maxPathLength;
 
 	numLeaf=0;
 	numInternalNodes=0;
@@ -234,53 +232,6 @@ CMVPIndex::CMVPIndex(vector<CIndexObject*> &dataObjects,CMetric *metric,CPivotSe
 CMVPIndex::~CMVPIndex()
 {
 
-}
-
-/** fucntion to create an root of mvp-tree
- *  @param task encapsulated the information which will be used to create the root node of mvp tree
- *  @return return the address of the mvp-tree root
- */
-CIndexNode* CMVPIndex::createRoot(Task *task)
-{
-	this->numInternalNodes ++;
-
-	/**get pivots of current node*/
-	vector<CIndexObject*> pivots;
-	task->getPivots(pivots);
-
-	/**partition current partition into several smaller child partitons*/
-	CPartitionResults pr=this->pm->partition(this->metric,pivots,task->dataList,0,task->size-task->numPivots,this->singlePivotFanout,this->maxLeafSize);
-
-	int childrenNumber=pr.partitionSize();
-
-	/**create a internal node as root node and assign the address of this node to the root pointer of mvp tree*/
-	vector<CIndexNode*> subTreeNode(childrenNumber-1);
-	CMVPInternalNode *root=new CMVPInternalNode(pivots,pr.getLowerBounds(),pr.getUpperBounds(),subTreeNode,task->getMyHeight());
-
-	/**create several tasks base on each of the child partitions created before and then push these tasks to the global variable queue for the iteration of building child trees*/
-	for(int i=childrenNumber-1;i>0;i--)
-	{
-		Task *newTask=0;
-
-		/**for the last child partition of current partition, the end index to create a task is the end index of current partiton, otherwise the end index is the start of next child partiton*/
-		if(i==childrenNumber-1)
-		{
-			cout<<"start-end:"<<pr.getPartition(i-1)<<"-"<<task->start+task->size-task->numPivots<<endl;
-			cout<<"the object list size of sub-tree is:"<<task->start+task->size-task->numPivots-pr.getPartition(i-1)<<endl;
-			newTask=new Task(task->dataList,root,pr.getPartition(i-1),pr.getPartition(i),i,task->getMyHeight()+1);
-		}
-		else
-		{
-			cout<<"start-end:"<<pr.getPartition(i-1)<<"-"<<pr.getPartition(i)<<endl;
-			cout<<"the object list size of sub-tree is:"<<pr.getPartition(i)-pr.getPartition(i-1)<<endl;
-			newTask=new Task(task->dataList,root,pr.getPartition(i-1),pr.getPartition(i),i,task->getMyHeight()+1);
-		}
-
-		/**push task into the queue*/
-		this->taskList.push_back(newTask);
-	}
-
-	return root;
 }
 
 /**function to create an internal node
@@ -302,27 +253,31 @@ void CMVPIndex::createInternalNode(Task *task)
 
 	/**create an internal node and assign its addres to the children list of parent node*/
 	vector<CIndexNode*> *subTreeNode=new vector<CIndexNode*>(childrenNumber-1);
-	CMVPInternalNode *child=new CMVPInternalNode(pivots,pr.getLowerBounds(),pr.getUpperBounds(),*subTreeNode,task->getMyHeight()+1);
-	(((CMVPInternalNode*)(task->getParentIndex()))->getSubTree())[task->myIndex-1]=child;
+	CMVPInternalNode *node=new CMVPInternalNode(pivots,pr.getLowerBounds(),pr.getUpperBounds(),*subTreeNode,task->getMyHeight()+1);
+    
+    if(this->root==0)
+        this->root=node;
+    else
+	    (((CMVPInternalNode*)(task->getParentIndex()))->getSubTree())[task->myIndex-1]=node;
 
 	/**create several tasks base on each of the child partitions created before and then push these tasks to the global variable queue for the iteration of building child trees*/
 	for(int i=childrenNumber-1;i>0;i--)
 	{
 		Task *newTask=0;
 
-		/**for the last child partition of current partition, the end index to create a task is the end index of current partiton, otherwise the end index is the start of next child partiton*/
-		if(i==childrenNumber-1)
+		///**for the last child partition of current partition, the end index is the end index of current partiton, otherwise the end index is the start of next child partiton*/
+		/*if(i==childrenNumber-1)
 		{
 			cout<<"start-end:"<<pr.getPartition(i-1)<<"-"<<task->start+task->size-task->numPivots<<endl;
 			cout<<"the object list size of sub-tree is:"<<task->start+task->size-task->numPivots-pr.getPartition(i-1)<<endl;
-			newTask = new Task(task->dataList,child,pr.getPartition(i-1),pr.getPartition(i)-1,i,task->getMyHeight()+1);
+		    newTask = new Task(task->dataList,child,pr.getPartition(i-1),pr.getPartition(i),i,task->getMyHeight()+1);
 		}
 		else
 		{
 			cout<<"start-end:"<<pr.getPartition(i-1)<<"-"<<pr.getPartition(i)<<endl;
-			cout<<"the object list size of sub-tree is:"<<pr.getPartition(i)-pr.getPartition(i-1)<<endl;
-			newTask = new Task(task->dataList,child,pr.getPartition(i-1),pr.getPartition(i)-1,i,task->getMyHeight()+1);
-		}
+			cout<<"the object list size of sub-tree is:"<<pr.getPartition(i)-pr.getPartition(i-1)<<endl;*/
+		newTask = new Task(task->dataList,node,pr.getPartition(i-1),pr.getPartition(i),i,task->getMyHeight()+1);
+		//}
 
 		this->taskList.push_back(newTask);
 
@@ -340,12 +295,12 @@ void CMVPIndex::createLeafNode(Task* task)
 	/**get all the objects of current partition*/
 	vector<CIndexObject*> children;
 	task->getDataPoints(children);
-
+    cout<<"child.size:"<<children.size()<<endl;
 	/**get all the pivots of current node*/
 	vector<CIndexObject*> pivots;
 	task->getPivots(pivots);
 
-	vector<vector<double> > distance;
+	vector<vector<double>> distance;
 
 	/**calcualte the distance from each of the objects of current parition to every pivots*/
 	for(vector<CIndexObject*>::size_type i=0;i<pivots.size();i++)
@@ -362,7 +317,11 @@ void CMVPIndex::createLeafNode(Task* task)
 	
 	/**create a leaf node and assign its memory address to the child list of parent node*/
 	CMVPLeafNode *mvpLeafNode=new CMVPLeafNode(pivots,children,distance,task->getMyHeight()+1);
-	(((CMVPInternalNode*)(task->getParentIndex()))->getSubTree())[task->myIndex-1]=mvpLeafNode;
+
+    if(this->root==0)
+        this->root=mvpLeafNode;
+    else
+	    (((CMVPInternalNode*)(task->getParentIndex()))->getSubTree())[task->myIndex-1]=mvpLeafNode;
 	
 }
 
@@ -386,45 +345,26 @@ void CMVPIndex::bulkLoad(vector<CIndexObject*> &dataObjects)
 		/**delete current task from the queue*/
 		this->taskList.erase(taskToGet);
 
-		if(this->root==0)
-		{
-		    /**get the number of pivot*/
-			numPivots = (this->numPivots>=task->size) ? task->size : this->numPivots;
+		
+		/**get the number of pivot*/
+		numPivots = (this->numPivots>=task->size) ? task->size : this->numPivots;
 
-			/**selecte several piovt from current partition based on the given parameter*/
-			vector<int> pivotsIndex;
-			pivotsIndex=this->psm->selectPivots(this->metric,task->dataList,0,task->dataList.size(),numPivots);
-
-			/**move the pivot to the end of current partition*/
-			task->groupPivotsAtEnd(pivotsIndex);
-
-			/**create the mvp-tree root*/
-			this->root=createRoot(task);
-		}
+		/**selecte several piovt from current partition based on the given parameter*/
+		vector<int> pivotsIndex;
+		pivotsIndex=this->psm->selectPivots(this->metric,task->dataList,task->start,task->size,numPivots);
+			
+		/**move the pivot to the end of current partition*/
+		task->groupPivotsAtEnd(pivotsIndex);
+		cout<<"taskList.size:"<<this->taskList.size()<<endl;
+		int remainNodeSize=task->size-task->numPivots;//task->size-task->numPivots
+		cout<<"remain node list size:"<<remainNodeSize<<endl;
+			
+		/**if the size of current partition is greater than the max size of a leaf node then create a internal node, otherwise create a leaf node.the max size of leaf node is given by the builder of the mvp-tree*/
+		if(remainNodeSize>maxLeafSize)
+			createInternalNode(task);
 		else
-		{
-		    /**get the number of pivot*/
-			numPivots = (this->numPivots>=task->size) ? task->size : this->numPivots;
-
-			/**selecte several piovt from current partition based on the given parameter*/
-			vector<int> pivotsIndex;
-			pivotsIndex=this->psm->selectPivots(this->metric,task->dataList,task->start,task->size,numPivots);
-			
-			/**move the pivot to the end of current partition*/
-			task->groupPivotsAtEnd(pivotsIndex);
-
-			cout<<"taskList.size:"<<this->taskList.size()<<endl;
-
-			int remainNodeSize=task->size-task->numPivots;//task->size-task->numPivots
-
-			cout<<"remain node list size:"<<remainNodeSize<<endl;
-			
-			/**if the size of current partition is greater than the max size of a leaf node then create a internal node, otherwise create a leaf node.the max size of leaf node is given by the builder of the mvp-tree*/
-			if(remainNodeSize>maxLeafSize)
-				createInternalNode(task);
-			else
-				createLeafNode(task);
-		}
+			createLeafNode(task);
+		
 	}
 
 
@@ -439,7 +379,7 @@ vector<CIndexObject*> CMVPIndex::search(CQuery* q)
 	vector<CIndexObject*> re;
 
 	CRangeQuery *rq=(CRangeQuery*)q;
-	root->search(*rq,*metric);
+	re=root->search(*rq,*metric);
 	return re;
 }
 
@@ -483,5 +423,5 @@ void CMVPIndex::write(text_oarchive &out)
  */
 void CMVPIndex::read(text_iarchive &in)
 {
-	in >> *this;
+	in>>*this;
 }

@@ -52,7 +52,7 @@ using namespace std;
 
 vector<CIndexObject*> Queryi(string _IndexDataFileName, string _QueryDataFileName, double _radius)
 {
-    
+
 	vector<CIndexObject*> indexData = CDoubleVector::loadData(_IndexDataFileName);
 	vector<CIndexObject*> queryData = CDoubleVector::loadData(_QueryDataFileName);
 

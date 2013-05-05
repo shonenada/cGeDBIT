@@ -57,10 +57,9 @@ void batchBulkLoad(char *&dataFileName,char *&mvpIndexFileName,char *&pivotSelec
 		pm=new CBalancePartitionMethod;
 	}
 
-	CIndex *mvpIndex = new CMVPIndex(rawData,metric,psm,pm,numPivot,singlePivotFanout,maxLeafSize,maxPathLength);
+	CIndex *mvpIndex=new CMVPIndex(rawData,metric,psm,pm,numPivot,singlePivotFanout,maxLeafSize,maxPathLength);
 
 	mvpIndex->bulkLoad(rawData);
-
 	cout<<"Building MVP tree over"<<endl;
 	
 
@@ -80,16 +79,16 @@ void batchBulkLoad(char *&dataFileName,char *&mvpIndexFileName,char *&pivotSelec
 	ifs.close();
 	ifs.clear();*/
 
-	/*double d[5]={3.3,5.5,2.2,1.1,4.4};
-	int dim=5;
+	double d[1]={50};
+	int dim=1; 
 	CDoubleVector *cd=new CDoubleVector(d,dim);
 
-	double radius=200;
+	double radius=15;//113;
 
 	CRangeQuery *q=new CRangeQuery(radius,cd);
 
 	vector<CIndexObject*> ve=mvpIndex->search(q);
-	
+	cout<<"size of result is :"<<ve.size()<<endl;
 	for(vector<CIndexObject*>::iterator it=ve.begin();it!=ve.end();it++)
 	{
 		CDoubleVector *cd=(CDoubleVector*)(*it);
@@ -103,7 +102,7 @@ void batchBulkLoad(char *&dataFileName,char *&mvpIndexFileName,char *&pivotSelec
 			else
 				cout<<cd->getData()[j]<<")"<<endl;
 		}
-	}*/
+	}
 
 
 }

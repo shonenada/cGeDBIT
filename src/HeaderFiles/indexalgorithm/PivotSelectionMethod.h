@@ -1,7 +1,7 @@
 #ifndef PIVOTSELECTIONMETHOD_H
 #define PIVOTSELECTIONMETHOD_H
 
-#include "../metric/Metric.h"
+#include "..\metric\Metric.h"
 #include <vector>
 
 #include <boost/serialization/vector.hpp>

@@ -1,4 +1,4 @@
-#include "../../HeaderFiles/index/IndexNode.h"
+#include "..\..\HeaderFiles\index\IndexNode.h"
 
 /**@addtogroup INDEXNODE
  *@{
@@ -52,7 +52,7 @@ CIndexObject* CIndexNode::getPivot(int pivotIndex)
 	return pivots[pivotIndex];
 }
 
-vector<CIndexObject*> CIndexNode::getPivots()
+vector<CIndexObject*>& CIndexNode::getPivots()
 {
     return pivots;
 }

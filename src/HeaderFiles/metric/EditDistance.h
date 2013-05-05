@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "../../HeaderFiles/objects/IndexObject.h"
-#include "../../HeaderFiles/objects/StringObject.h"
+#include "..\..\HeaderFiles\objects\IndexObject.h"
+#include "..\..\HeaderFiles\objects\StringObject.h"
 
 
 using namespace std;

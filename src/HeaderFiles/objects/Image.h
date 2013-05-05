@@ -18,42 +18,17 @@ class CImage :
 public: 
 
 	CImage();
-
-    /**
-     * @param FLen
-     * @param feas an array of floats over which the feature values are defined.
-     */
 	CImage(int FLen , float feas[] ); 
-
-    /**
-     * @param FLen
-     * @param DLen
-     * @param feas an array of floats over which the feature values are defined.
-     * @param maxDist
-     */
 	CImage(int FLen , int DLen , float feas[] , double maxDist[]); 
 	~CImage(void);
 
-	static vector<CIndexObject*> loadData(string fileName , int cImage_Num, int  feas_Num);
-
-    /**
-     * @param index
-     * @return
-     */
+	
 	float getFeature(int index); 
-
-	/**
-	 * @Override
-	 */
 	int getSize(); 
-
-
 	int compareTo(CIndexObject *oThat); 
-
-
-	bool equals(CIndexObject *other);
-
-	string toString(); 
+	string toString();
+	int hashCode();
+	static vector<CIndexObject*> loadData(string fileName , int cImage_Num, int  feas_Num);
 	
 
 private:
