@@ -1,9 +1,9 @@
 #ifndef INDEXNODE_H
 #define INDEXNODE_H
 
-#include "..\objects\IndexObject.h"
-#include "..\query\RangeQuery.h"
-#include "..\metric\Metric.h"
+#include "../objects/IndexObject.h"
+#include "../query/RangeQuery.h"
+#include "../metric/Metric.h"
 
 #include <boost/serialization/vector.hpp>
 

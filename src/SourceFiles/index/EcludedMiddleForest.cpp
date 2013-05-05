@@ -334,7 +334,7 @@ void CEcludedMiddleForest::createLeafNode(ForestTask *forestTask,int treeIndex,v
 	vector<CIndexObject*> pivots;
 	forestTask->getPivots(pivots);
 
-	vector<vector<double>> distance;
+	vector<vector<double> > distance;
 
 	/**calcualte the distance from each of the objects of current parition to every pivots*/
 	for(vector<CIndexObject*>::size_type i=0;i<pivots.size();i++)

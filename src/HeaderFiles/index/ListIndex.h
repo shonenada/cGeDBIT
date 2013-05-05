@@ -1,7 +1,7 @@
 #ifndef LISTINDEX_H
 #define LISTINDEX_H
 #include "Index.h"
-#include "..\query\RangeQuery.h"
+#include "../query/RangeQuery.h"
 
 #include <string>
 

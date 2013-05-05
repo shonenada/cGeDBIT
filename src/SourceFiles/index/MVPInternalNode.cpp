@@ -1,4 +1,4 @@
-#include "..\..\HeaderFiles\index\MVPInternalNode.h"
+#include "../../HeaderFiles/index/MVPInternalNode.h"
 /**none parameter constructor*/
 CMVPInternalNode::CMVPInternalNode()
 {
@@ -12,7 +12,7 @@ CMVPInternalNode::CMVPInternalNode()
 @para child a sub-tree address vector
 @para myHeight the layer of this node
 */
-CMVPInternalNode::CMVPInternalNode(vector<CIndexObject*> pivots,vector<vector<double>> lower,vector<vector<double>> upper,vector<CIndexNode*> child,int myHeight):CIndexNode(pivots,myHeight)
+CMVPInternalNode::CMVPInternalNode(vector<CIndexObject*> pivots,vector<vector<double> > lower,vector<vector<double> > upper,vector<CIndexNode*> child,int myHeight):CIndexNode(pivots,myHeight)
 {
 
     this->child=child;

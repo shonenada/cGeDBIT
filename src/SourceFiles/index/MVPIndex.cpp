@@ -1,4 +1,4 @@
-#include "..\..\HeaderFiles\index\MVPIndex.h"
+#include "../../HeaderFiles/index/MVPIndex.h"
 
 /**In the whole process of building a mvp-tree, some same openration like creating a internal node or leaf node could be encapsulated as a task and then put the task into a queue or stack for the iteration of building child trees*/
 class Task 
@@ -300,7 +300,7 @@ void CMVPIndex::createLeafNode(Task* task)
 	vector<CIndexObject*> pivots;
 	task->getPivots(pivots);
 
-	vector<vector<double>> distance;
+	vector<vector<double> > distance;
 
 	/**calcualte the distance from each of the objects of current parition to every pivots*/
 	for(vector<CIndexObject*>::size_type i=0;i<pivots.size();i++)
@@ -423,5 +423,5 @@ void CMVPIndex::write(text_oarchive &out)
  */
 void CMVPIndex::read(text_iarchive &in)
 {
-	in>>*this;
+	in >> *this;
 }

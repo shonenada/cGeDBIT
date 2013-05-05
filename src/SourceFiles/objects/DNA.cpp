@@ -88,15 +88,15 @@ int CDNA::getSymbolID(char symbol)
  *  how much pointer point to it, and this counting called reference counting.
  *  When reference counting reduces to 0, this object will destory automatically.
  * By using shared_ptr<T>, we can ensure no memory leak.
- * @return vector<shared_ptr<CDNA>>
+ * @return vector<shared_ptr<CDNA> >
  *   - return a vector stored DNA fragments.
  * 
 */
-vector<shared_ptr<CDNA>> CDNA::loadData(string filename, int maxSize, int fragmentLength){
-	vector<shared_ptr<CDNA>> data;
+vector<shared_ptr<CDNA> > CDNA::loadData(string filename, int maxSize, int fragmentLength){
+	vector<shared_ptr<CDNA> > data;
 	
 	ifstream infile(filename, ios::in);
-	vector<shared_ptr<CDNA>> dnas;
+	vector<shared_ptr<CDNA> > dnas;
 	
 	if(!infile.is_open()){
 		cerr << "Stop! Cannot open the file." << endl;

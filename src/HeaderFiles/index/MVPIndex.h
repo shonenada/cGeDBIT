@@ -1,8 +1,8 @@
 #ifndef MVPINDEX_H
 #define MAPINDEX_H
 
-#include "..\indexalgorithm\PartitionMethod.h"
-#include "..\indexalgorithm\PivotSelectionMethod.h"
+#include "../indexalgorithm/PartitionMethod.h"
+#include "../indexalgorithm/PivotSelectionMethod.h"
 
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/vector.hpp>

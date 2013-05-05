@@ -1,8 +1,8 @@
 #ifndef PARTITIONRESULTS_H
 #define PARTITIONRESULTS_H
 
-#include "..\objects\IndexObject.h"
-#include "..\index\IndexNode.h"
+#include "../objects/IndexObject.h"
+#include "../index/IndexNode.h"
 #include <boost/serialization/vector.hpp>
 
 /**@defgroup PARTITIONRESULTS SQAI:PARTITIONRESULTS
@@ -25,7 +25,7 @@ public:
 		@param lowerBounds  In this two dimension vector contains the minimum distance value of data objects in each sub-partition to every given pivots. The total  number of rows of this vector is equal to the number of all pivots in this node while the number of column is equal to the number of child nodes in this node
 		@param upperBounds:In this two dimension vector contains the minimum distance value of data objects in each sub-partition to every given pivots. The total  number of rows of this vector is equal to the number of all pivots in this node while the number of column is equal to the number of child nodes in this node
 	*/
-	CPartitionResults(vector<int> &offsets,vector<vector<double>> &lower,vector<vector<double>> &upper);
+	CPartitionResults(vector<int> &offsets,vector<vector<double> > &lower,vector<vector<double> > &upper);
 
 	/*
 		the destructor
@@ -45,12 +45,12 @@ public:
 	/*
 		@return: return a distance value container
 	*/
-	vector<vector<double>>& getLowerBounds();
+	vector<vector<double> >& getLowerBounds();
 
 	/*
 		@return: return a distance value container
 	*/
-	vector<vector<double>>& getUpperBounds();
+	vector<vector<double> >& getUpperBounds();
 
 private:
 
@@ -58,9 +58,9 @@ private:
 	vector<int> offsets;
 
 	/**In this two dimension vector contains the minimum distance value of data objects in each sub-partition to every given pivots. The total  number of rows of this vector is equal to the number of all pivots in this node while the number of column is equal to the number of child nodes in this node*/
-	vector<vector<double>> lowerBounds;
+	vector<vector<double> > lowerBounds;
 	/**In this two dimension vector contains the maximum distance value of data objects in each sub-partition to every given pivots. The total  number of rows of this vector is equal to the number of all pivots in this node while the number of column is equal to the number of child nodes in this node*/
-	vector<vector<double>> upperBounds;
+	vector<vector<double> > upperBounds;
 
 };
 /**@}*/

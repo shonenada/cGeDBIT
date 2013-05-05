@@ -1,4 +1,4 @@
-#include "..\..\HeaderFiles\index\IndexNode.h"
+#include "../../HeaderFiles/index/IndexNode.h"
 
 /**@addtogroup INDEXNODE
  *@{

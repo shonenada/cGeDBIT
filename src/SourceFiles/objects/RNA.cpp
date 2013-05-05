@@ -88,15 +88,15 @@ int CRNA::getSymbolID(char symbol)
  *  how much pointer point to it, and this counting called reference counting.
  *  When reference counting reduces to 0, this object will destory automatically.
  * By using shared_ptr<T>, we can ensure no memory leak.
- * @return vector<shared_ptr<CRNA>>
+ * @return vector<shared_ptr<CRNA> >
  *   - return a vector stored RNA fragments.
  * 
 */
-vector<shared_ptr<CRNA>> CRNA::loadData(string filename, int maxSize, int fragmentLength){
-	vector<shared_ptr<CRNA>> data;
+vector<shared_ptr<CRNA> > CRNA::loadData(string filename, int maxSize, int fragmentLength){
+	vector<shared_ptr<CRNA> > data;
 	
 	ifstream infile(filename, ios::in);
-	vector<shared_ptr<CRNA>> rnas;
+	vector<shared_ptr<CRNA> > rnas;
 	
 	if(!infile.is_open()){
 		cerr << "Stop! Cannot open the file." << endl;

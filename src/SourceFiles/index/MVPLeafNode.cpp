@@ -1,4 +1,4 @@
-#include "..\..\HeaderFiles\index\MVPLeafNode.h"
+#include "../../HeaderFiles/index/MVPLeafNode.h"
 /**constructor with no parameters*/
 CMVPLeafNode::CMVPLeafNode()
 {
@@ -11,7 +11,7 @@ CMVPLeafNode::CMVPLeafNode()
 * @param distance contains all the distance values from every pivots to each of the object in the object list of this node.the number of rows in this vector is euqual to the number of pivots in this node while the number of column is equal to the length of dataObjects, which is the second parameter of this function
 * @param the height of current node
 */
-CMVPLeafNode::CMVPLeafNode(vector<CIndexObject*> &pivots,vector<CIndexObject*> &dataObjects,vector<vector<double>> &distance,int height):CIndexNode(pivots,height)
+CMVPLeafNode::CMVPLeafNode(vector<CIndexObject*> &pivots,vector<CIndexObject*> &dataObjects,vector<vector<double> > &distance,int height):CIndexNode(pivots,height)
 {
     this->dataObjects=dataObjects;
     this->distance=distance;

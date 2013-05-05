@@ -125,11 +125,11 @@ public:
      *  how much pointer point to it, and this counting called reference counting.
      *  When reference counting reduces to 0, this object will destory automatically.
      * By using shared_ptr<T>, we can ensure no memory leak.
-     * @return vector<shared_ptr<CRNA>>
+     * @return vector<shared_ptr<CRNA> >
      *   - return a vector stored RNA fragments.
      * 
     */
-    static vector<shared_ptr<CRNA>> loadData(string filename, int maxSize, int fragmentLength);
+    static vector<shared_ptr<CRNA> > loadData(string filename, int maxSize, int fragmentLength);
 
 };
 /**

@@ -25,7 +25,7 @@ public:
 		@param distance contains all the distance values from every pivots to each of the object in the object list of this node.the number of rows in this vector is euqual to the number of pivots in this node while the number of column is equal to the length of dataObjects, which is the second parameter of this function
 		@param the height of current node
 	*/
-	CMVPLeafNode(vector<CIndexObject*> &pivots,vector<CIndexObject*> &dataObjects,vector<vector<double>> &distance,int height);
+	CMVPLeafNode(vector<CIndexObject*> &pivots,vector<CIndexObject*> &dataObjects,vector<vector<double> > &distance,int height);
 	/**destructor*/
 	~CMVPLeafNode();
 
@@ -64,7 +64,7 @@ private:
 	/**all the address of objects that reside in this node is stored in this vector*/
 	vector<CIndexObject*> dataObjects;
 	/**contains all the distance values from every pivots to each of the object in the object list of this node.the number of rows in this vector is euqual to the number of pivots in this node while the number of column is equal to the length of dataObjects, which is the second parameter of this function*/
-	vector<vector<double>> distance;
+	vector<vector<double> > distance;
 };
 
 /**@}*/
