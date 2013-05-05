@@ -1,56 +1,71 @@
 cmake_minimum_required(VERSION 2.8)
 project(cGeDBIT)
 
-set(CMAKE_CXX_FLAGES "${CMAKE_CXX_FLAGS} -std=c++0x")
-
+# Include the test data
 configure_file(data/rawdata.txt
                ${CMAKE_CURRENT_BINARY_DIR}/data/rawdata.txt
                COPYONLY)
 
-include_directories(HeaderFiles/index HeaderFiles/indexalgorithm
-                    HeaderFiles/metrix HeaderFiles/objects HeaderFiles/query
-                    HeaderFiles/type HeaderFiles/uitl
-                    /home/shonenada/Projects/nhpcc/boost_1_53_0)
+# Include head files in cGeDBIT
+include_directories(src/HeaderFiles/index src/HeaderFiles/indexalgorithm
+                    src/HeaderFiles/metric src/HeaderFiles/objects
+                    src/HeaderFiles/query)
 
+# Include the third-part libraries.
+include_directories(libs/boost_1_53_0)
+
+# Add index library in cGeDBIT
 add_library(cGeDBIT_indexs
-            SourceFiles/index/EcludedMiddleForest.cpp
-            SourceFiles/index/Index.cpp
-            SourceFiles/index/IndexNode.cpp
-            SourceFiles/index/ListIndex.cpp
-            SourceFiles/index/MVPIndex.cpp
-            SourceFiles/index/MVPLeafNode.cpp
-            SourceFiles/index/MVPInternalNode.cpp)
+            src/SourceFiles/index/EcludedMiddleForest.cpp
+            src/SourceFiles/index/Index.cpp
+            src/SourceFiles/index/IndexNode.cpp
+            src/SourceFiles/index/ListIndex.cpp
+            src/SourceFiles/index/MVPIndex.cpp
+            src/SourceFiles/index/MVPLeafNode.cpp
+            src/SourceFiles/index/MVPInternalNode.cpp)
 
-add_library(cGeDBIT_indexalgorithm
-            SourceFiles/indexalgorithm/BalancePartitionMethod.cpp
-            SourceFiles/indexalgorithm/EcludedMiddlePartitionMethod.cpp
-            SourceFiles/indexalgorithm/FFTPivotSelectionMethod.cpp
-            SourceFiles/indexalgorithm/PartitionResualts.cpp)
+# Add indexalgorithm library in cGeDBIT
+add_library(cGeDBIT_indexalgorithms
+            src/SourceFiles/indexalgorithm/BalancePartitionMethod.cpp
+            src/SourceFiles/indexalgorithm/EcludedMiddlePartitionMethod.cpp
+            src/SourceFiles/indexalgorithm/FFTPivotSelectionMethod.cpp
+            src/SourceFiles/indexalgorithm/PartitionResults.cpp)
 
+# Add metric library in cGeDBIT
 add_library(cGeDBIT_metrics
-            SourceFiles/metric/DNAMetric.cpp
-            SourceFiles/metric/EditDistance.cpp
-            SourceFiles/metric/EuclideanDistance.cpp
-            SourceFiles/metric/ImageMetric.cpp
-            SourceFiles/metric/MSMSMetric.cpp
-            SourceFiles/metric/Metric.cpp
-            SourceFiles/metric/RNAMetric.cpp)
+            src/SourceFiles/metric/Metric.cpp
+            src/SourceFiles/metric/DNAMetric.cpp
+            src/SourceFiles/metric/EditDistance.cpp
+            src/SourceFiles/metric/EuclideanDistance.cpp
+            src/SourceFiles/metric/ImageMetric.cpp
+            src/SourceFiles/metric/MSMSMetric.cpp
+            src/SourceFiles/metric/RNAMetric.cpp)
 
+# Add object library in cGeDBIT
 add_library(cGeDBIT_objects
-            SourceFiles/objects/DNA.cpp
-            SourceFiles/objects/DoubleVector.cpp
-            SourceFiles/objects/Image.cpp
-            SourceFiles/objects/IndexObject.cpp
-            SourceFiles/objects/RNA.cpp
-            SourceFiles/objects/StringObject.cpp
-            SourceFiles/objects/TandemSpectra.cpp)
+            src/SourceFiles/objects/IndexObject.cpp
+            src/SourceFiles/objects/DNA.cpp
+            src/SourceFiles/objects/DoubleVector.cpp
+            src/SourceFiles/objects/Image.cpp
+            src/SourceFiles/objects/RNA.cpp
+            src/SourceFiles/objects/StringObject.cpp
+            src/SourceFiles/objects/TandemSpectra.cpp
+            src/SourceFiles/type/DoubleIndexObjectPair.cpp)
 
+# Add query library cGeDBIT
 add_library(cGeDBIT_querys
-            SourceFiles/query/Query.cpp
-            SourceFiles/query/RangeQuery.cpp
-            SourceFiles/type/DoubleIndexObjectPair.cpp
-            SourceFiles/util/getopt.cpp)
+            src/SourceFiles/query/Query.cpp
+            src/SourceFiles/query/RangeQuery.cpp)
 
-add_executable(cGeDBIT APP/BuildMVPIndex.cpp)
-target_link_libraries(cGeDBIT cGeDBIT_indexs cGeDBIT_indexalgorithm
-                      cGeDBIT_metrics cGeDBIT_objects cGeDBIT_querys)
+# Add util library cGeDBIT
+add_library(cGeDBIT_utils
+            src/SourceFiles/util/getopt.cpp)
+
+# Add executale files
+add_executable(cGeDBIT src/app/BuildMVPIndex.cpp)
+
+# Link libraries.
+target_link_libraries(cGeDBIT cGeDBIT_indexs cGeDBIT_indexalgorithms
+                      cGeDBIT_metrics cGeDBIT_objects cGeDBIT_querys
+                      cGeDBIT_utils)
+
