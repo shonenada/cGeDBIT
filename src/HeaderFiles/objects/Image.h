@@ -42,4 +42,4 @@ private:
 	int max_Dist_Len;
 };
 
-#endif;
+#endif

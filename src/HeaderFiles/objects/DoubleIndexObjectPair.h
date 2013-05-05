@@ -1,7 +1,7 @@
 #ifndef DOUBLEINDEXOBJECTPAIR_H
 #define DOUBLEINDEXOBJECTPAIR_H
 
-#include "..\objects\IndexObject.h"
+#include "../objects/IndexObject.h"
 #include <vector>
 
 class CDoubleIndexObjectPair

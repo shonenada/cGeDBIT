@@ -1,6 +1,6 @@
 #include "../../HeaderFiles/objects/TandemSpectra.h"
 
-#include <fstream >
+#include <fstream>
 #include <vector>
 #include <cmath>
 #include <string>

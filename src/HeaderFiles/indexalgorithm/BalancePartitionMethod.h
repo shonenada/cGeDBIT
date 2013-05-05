@@ -2,7 +2,7 @@
 #define SQAI_INDEXALGORITHM_BALANCE_PARTITIONMETHOD_H
 
 #include "PartitionMethod.h"
-#include "../type/DoubleIndexObjectPair.h"
+#include "../objects/DoubleIndexObjectPair.h"
 
 #include <boost/serialization/base_object.hpp>
 /**

@@ -1,4 +1,4 @@
-#include "../../HeaderFiles/type/DoubleIndexObjectPair.h"
+#include "../../HeaderFiles/objects/DoubleIndexObjectPair.h"
 
 CDoubleIndexObjectPair::CDoubleIndexObjectPair()
 {

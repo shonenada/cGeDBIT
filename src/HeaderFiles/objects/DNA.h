@@ -5,7 +5,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <tr1/memory>
 #include "IndexObject.h"
 
 using namespace std;

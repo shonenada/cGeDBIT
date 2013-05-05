@@ -1,6 +1,6 @@
 #pragma once
 #include "PartitionMethod.h"
-#include "..\type\DoubleIndexObjectPair.h"
+#include "../objects/DoubleIndexObjectPair.h"
 
 
 #include <algorithm>

@@ -1,6 +1,6 @@
-#include "..\..\HeaderFiles\indexalgorithm\BalancePartitionMethod.h"
-#include "..\..\HeaderFiles\type\DoubleIndexObjectPair.h"
-#include "..\..\HeaderFiles\index\MVPInternalNode.h"
+#include "../../HeaderFiles/indexalgorithm/BalancePartitionMethod.h"
+#include "../../HeaderFiles/objects/DoubleIndexObjectPair.h"
+#include "../../HeaderFiles/index/MVPInternalNode.h"
 
 #include <cmath>
 #include <algorithm>
