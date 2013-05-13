@@ -22,10 +22,16 @@ YOUR INFORMATION HANDLING SYSTEM OR OTHERWISE, EVEN If WE ARE
 EXPRESSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. 
 */
 
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <cstring>
+
 #include "../HeaderFiles/objects/DoubleVector.h"
 #include "../HeaderFiles/metric/Metric.h"
 #include "../HeaderFiles/metric/EuclideanDistance.h"
-#include "../HeaderFiles/index/index.h"
+#include "../HeaderFiles/index/Index.h"
 #include "../HeaderFiles/index/MVPIndex.h"
 #include "../HeaderFiles/index/ListIndex.h"
 #include "../HeaderFiles/indexalgorithm/PartitionMethod.h"
@@ -37,14 +43,7 @@ EXPRESSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "../HeaderFiles/util/getopt.h"
 
 
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sstream>
-
-
 using namespace std;
-
 
 
 void batchBulkLoad(char *&dataFileName,char *&mvpIndexFileName,char *&pivotSelectionMethod, char *&partitionMethod, int &numPivot, int &singlePivotFanout, int &maxLeafSize, int &maxPathLength)
@@ -219,33 +218,33 @@ int main(int argc, char** argv)
 
 	while (1)
 	{		
-		static struct option_a long_options[] =
+		static struct option long_options[] =
 		{
-			{"verbose", ARG_NONE, &verbose_flag, 1},
-			{"brief",   ARG_NONE, &verbose_flag, 0},
+			{"verbose", no_argument, &verbose_flag, 1},
+			{"brief",   no_argument, &verbose_flag, 0},
 
-			{"dataFileName",    ARG_REQ, 0 , 'n'},
-			{"psm",    ARG_REQ, 0 , 'p'},
-			{"np",    ARG_REQ, 0 , 'v'},
-			{"pm",    ARG_REQ, 0 , 'M'},
-			{"spf",    ARG_REQ, 0 , 'f'},
-			{"mls",    ARG_REQ, 0 , 'm'},
-			{"pl",    ARG_REQ, 0 , 'x'},
-			{"dataType",    ARG_REQ, 0 , 't'},
-			{"frag",    ARG_REQ, 0 , 'F'},
-			{"dim",    ARG_REQ, 0 , 'd'},
-			{"seta",    ARG_REQ, 0 , 'A'},
-			{"setn",    ARG_REQ, 0 , 'N'},
-			{"mvpIndexFileName",    ARG_REQ, 0 , 'o'},
-			{"initialSize",    ARG_REQ, 0 , 'i'},
-			{"finalSize",    ARG_REQ, 0 , 'a'},
-			{"stepSize",    ARG_REQ, 0 , 's'},
+			{"dataFileName",    required_argument, 0 , 'n'},
+			{"psm",    required_argument, 0 , 'p'},
+			{"np",    required_argument, 0 , 'v'},
+			{"pm",    required_argument, 0 , 'M'},
+			{"spf",    required_argument, 0 , 'f'},
+			{"mls",    required_argument, 0 , 'm'},
+			{"pl",    required_argument, 0 , 'x'},
+			{"dataType",    required_argument, 0 , 't'},
+			{"frag",    required_argument, 0 , 'F'},
+			{"dim",    required_argument, 0 , 'd'},
+			{"seta",    required_argument, 0 , 'A'},
+			{"setn",    required_argument, 0 , 'N'},
+			{"mvpIndexFileName",    required_argument, 0 , 'o'},
+			{"initialSize",    required_argument, 0 , 'i'},
+			{"finalSize",    required_argument, 0 , 'a'},
+			{"stepSize",    required_argument, 0 , 's'},
 
-			{ ARG_NULL , ARG_NULL , ARG_NULL , ARG_NULL }
+			{ no_argument , no_argument , no_argument , no_argument }
 		};
 		
 		int option_index = 0;
-		c = getopt_long_a(argc, argv, ("n:p:v:M:S:m:x:t:f:d:A:N:o:i:a:s:"), long_options, &option_index);
+		c = getopt_long(argc, argv, ("n:p:v:M:S:m:x:t:f:d:A:N:o:i:a:s:"), long_options, &option_index);
 		
 		// Check for end of operation or error
 		if (c == -1)
@@ -259,93 +258,93 @@ int main(int argc, char** argv)
 			if (long_options[option_index].flag != 0)
 				break;
 			printf (("option %s"), long_options[option_index].name);
-			if (optarg_a)
-				printf ((" with arg %s"), optarg_a);
+			if (optarg)
+				printf ((" with arg %s"), optarg);
 			printf (("\n"));
 			break;
 			
 		case ('n'):	
-			dataFileName = new char[strlen(optarg_a)+1];
-			strcpy(dataFileName,optarg_a);
+			dataFileName = new char[strlen(optarg)+1];
+			strcpy(dataFileName,optarg);
 			printf (("option -dataFileName with value `%s'\n"), dataFileName);
 			break;
 
 		case ('p'):	
-			pivotSelectionMethod = new char[strlen(optarg_a)+1];
-			strcpy(pivotSelectionMethod,optarg_a);
+			pivotSelectionMethod = new char[strlen(optarg)+1];
+			strcpy(pivotSelectionMethod,optarg);
 			printf (("option -pivotSelectionMethod with value `%s'\n"), pivotSelectionMethod);
 			break;
 
 		case ('v'):	
-			numPivot=stringToNumber<int>(optarg_a);
+			numPivot=stringToNumber<int>(optarg);
 			printf (("option -numPivot with value `%d'\n"), numPivot);
 			break;
 
 		case ('M'):	
-			partitionMethod = new char[strlen(optarg_a)+1];
-			strcpy(partitionMethod,optarg_a);
+			partitionMethod = new char[strlen(optarg)+1];
+			strcpy(partitionMethod,optarg);
 			printf (("option -partitionMethod with value `%s'\n"), partitionMethod);
 			break;
 
 		case ('f'):	
-			singlePivotFanout=stringToNumber<int>(optarg_a);
+			singlePivotFanout=stringToNumber<int>(optarg);
 			printf (("option -singlePivotFanout with value `%d'\n"), singlePivotFanout);
 			break;
 
 		case ('m'):	
-			maxLeafSize=stringToNumber<int>(optarg_a);
+			maxLeafSize=stringToNumber<int>(optarg);
 			printf (("option -maxLeafSize with value `%d'\n"), maxLeafSize);
 			break;
 
 		case ('x'):	
-			maxPathLength=stringToNumber<int>(optarg_a);
+			maxPathLength=stringToNumber<int>(optarg);
 			printf (("option -maxPathLength with value `%d'\n"), maxPathLength);
 			break;
 
 		case ('t'):	
-			dataType = new char[strlen(optarg_a)+1];
-			strcpy(dataType,optarg_a);
+			dataType = new char[strlen(optarg)+1];
+			strcpy(dataType,optarg);
 			printf (("option -dataType with value `%s'\n"), dataType);
 			break;
 
 		case ('F'):	
-			frag = stringToNumber<int>(optarg_a);
+			frag = stringToNumber<int>(optarg);
 			printf (("option -frag with value `%d'\n"), frag);
 			break;
 
 		case ('d'):	
-			dim=stringToNumber<int>(optarg_a);
+			dim=stringToNumber<int>(optarg);
 			printf (("option -dim with value `%d'\n"), dim);
 			break;
 
 		case ('A'):	
-			setA = stringToNumber<int>(optarg_a);
+			setA = stringToNumber<int>(optarg);
 			printf (("option -setA with value `%d'\n"), setA);
 			break;
 
 		case ('N'):	
-			setN = stringToNumber<int>(optarg_a);
+			setN = stringToNumber<int>(optarg);
 			printf (("option -setN with value `%d'\n"), setN);
 			break;
 
 		case ('o'):	
-			mvpIndexFileName = new char[strlen(optarg_a)+1];
-			strcpy(mvpIndexFileName,optarg_a);
+			mvpIndexFileName = new char[strlen(optarg)+1];
+			strcpy(mvpIndexFileName,optarg);
 			printf (("option -mvpIndexFileName with value `%s'\n"), mvpIndexFileName);
 			break;
 
 		case ('i'):	
-			initialSize = stringToNumber<int>(optarg_a);
+			initialSize = stringToNumber<int>(optarg);
 			printf (("option -initialSize with value `%d'\n"), initialSize);
 			break;
 
 		case ('a'):	
-			finalSize = stringToNumber<int>(optarg_a);
+			finalSize = stringToNumber<int>(optarg);
 			printf (("option -finalSize with value `%d'\n"), finalSize);
 			break;
 
 		case ('s'):	
-			stepSize = stringToNumber<int>(optarg_a);
+			stepSize = stringToNumber<int>(optarg);
 			printf (("option -stepSize with value `%d'\n"), stepSize);
 			break;
 
