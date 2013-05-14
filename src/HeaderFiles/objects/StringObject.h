@@ -2,9 +2,9 @@
 #define STRINGOBJECT_H
 
 #include "IndexObject.h"
-#include<string>
-#include<fstream>
-#include<vector>
+#include <string>
+#include <fstream>
+#include <vector>
 
 using namespace std;
 

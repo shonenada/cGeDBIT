@@ -4,10 +4,10 @@
 #include "IndexObject.h"
 
 
-#include<fstream>
-#include<string>
-#include<vector>
-#include<math.h>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <math.h>
 using namespace std;
 
 const int maxNum = 100;
@@ -28,7 +28,7 @@ public:
 	int compareTo(CIndexObject *oThat); 
 	string toString();
 	int hashCode();
-	static vector<CIndexObject*> loadData(string fileName , int cImage_Num, int  feas_Num);
+	static vector<CIndexObject*>* loadData(string fileName , int cImage_Num, int  feas_Num);
 	
 
 private:
@@ -42,4 +42,4 @@ private:
 	int max_Dist_Len;
 };
 
-#endif
+#endif;

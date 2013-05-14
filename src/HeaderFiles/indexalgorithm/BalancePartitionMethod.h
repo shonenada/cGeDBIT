@@ -2,7 +2,7 @@
 #define SQAI_INDEXALGORITHM_BALANCE_PARTITIONMETHOD_H
 
 #include "PartitionMethod.h"
-#include "../objects/DoubleIndexObjectPair.h"
+#include "../type/DoubleIndexObjectPair.h"
 
 #include <boost/serialization/base_object.hpp>
 /**
@@ -42,7 +42,7 @@ public:
     CPartitionResults partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data, int first, int size, int numPartitions, int maxLeafSize);
 
 	/***/
-	virtual CPartitionResults partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data,int first,int size,int maxRadius,int numPartitions,int maxLeafSize,double middleProportion);
+	virtual CPartitionResults partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data,int first,int size,double maxRadius,int numPartitions,int maxLeafSize,double middleProportion);
 private:  
 
 	friend class boost::serialization::access;

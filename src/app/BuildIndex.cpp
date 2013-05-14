@@ -1,108 +1,469 @@
-#include "../HeaderFiles/query/RangeQuery.h"
+/*
+Date: 02/03/2011 - Ludvik Jerabek - Initial Release
+Version: 1.0
+Comment: Sample Application using Getopt for Microsoft C\C++
+License: LGPL
+
+Revisions:
+
+02/03/2011 - Ludvik Jerabek - Initial Release
+
+**DISCLAIMER**
+THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
+EITHER EXPRESS OR IMPLIED, INCLUDING, BUT Not LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, OR NON-INFRINGEMENT. SOME JURISDICTIONS DO NOT ALLOW THE
+EXCLUSION OF IMPLIED WARRANTIES, SO THE ABOVE EXCLUSION MAY NOT
+APPLY TO YOU. IN NO EVENT WILL I BE LIABLE TO ANY PARTY FOR ANY
+DIRECT, INDIRECT, SPECIAL OR OTHER CONSEQUENTIAL DAMAGES FOR ANY
+USE OF THIS MATERIAL INCLUDING, WITHOUT LIMITATION, ANY LOST
+PROFITS, BUSINESS INTERRUPTION, LOSS OF PROGRAMS OR OTHER DATA ON
+YOUR INFORMATION HANDLING SYSTEM OR OTHERWISE, EVEN If WE ARE
+EXPRESSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. 
+*/
+#define _CRT_SECURE_NO_WARNINGS
 #include "../HeaderFiles/objects/DoubleVector.h"
 #include "../HeaderFiles/metric/Metric.h"
-#include "../HeaderFiles/index/Index.h"
-#include "../HeaderFiles/index/ListIndex.h"
 #include "../HeaderFiles/metric/EuclideanDistance.h"
+#include "../HeaderFiles/index/Index.h"
+#include "../HeaderFiles/index/MVPIndex.h"
+#include "../HeaderFiles/index/ListIndex.h"
+#include "../HeaderFiles/indexalgorithm/PartitionMethod.h"
+#include "../HeaderFiles/indexalgorithm/PivotSelectionMethod.h"
+#include "../HeaderFiles/indexalgorithm/FFTPivotSelectionMethod.h"
+#include "../HeaderFiles/indexalgorithm/BalancePartitionMethod.h"
+#include "../HeaderFiles/query/Query.h"
+#include "../HeaderFiles/query/RangeQuery.h"
+#include "../HeaderFiles/util/getopt.h"
 
+#include "../HeaderFiles/metric/DNAMetric.h"
+#include "../HeaderFiles/metric/EditDistance.h"
+#include "../HeaderFiles/metric/ImageMetric.h"
+#include "../HeaderFiles/metric/MSMSMetric.h"
+#include "../HeaderFiles/metric/RNAMetric.h"//#include "../HeaderFiles/metric/PeptideMetric.h"
+
+
+#include <stdlib.h>
 #include <iostream>
-#include <string.h>
-#include <fstream>
-#include <vector>
 #include <string>
+#include <fstream>
+#include <sstream>
+#include <cstring>
+
+
+using namespace std;
 
 
 
-#include <boost/serialization/export.hpp>
-
-
-BOOST_CLASS_EXPORT_GUID(CListIndex, "CListIndex");
-BOOST_CLASS_EXPORT_GUID(CDoubleVector, "CDoubleVector");
-BOOST_CLASS_EXPORT_GUID(CEuclideanDistance, "CEuclideanDistance");
-
-
-void batchBulkLoad(char* inFileName, char* outFileName)
+void batchBulkLoad(char *&dataFileName,char *&IndexFileName,char *&pivotSelectionMethod, char *&partitionMethod, int &numPivot, int &singlePivotFanout, int &maxLeafSize,char *&indexType,char *&dataType,int &cImageNum,int &feasNum,int &fragmentLength,int &maxDataSize,int &dataDimension)
 {
-	//read the raw data from the data file stored in the external memory
-	vector<CIndexObject*>indexdata = CDoubleVector::loadData(inFileName);
 
-	CMetric* m = new CEuclideanDistance;
-	CListIndex* index  = new CListIndex(m);
+	vector<CIndexObject*> *rawData=0;
+
+	CMetric *metric=0;
 	
-	//build an index;
-	index->bulkLoad(indexdata);
+	CPivotSelectionMethod *psm=0;
+	CPartitionMethod *pm=0;
 
-	//write the index,built above,into hard disk
-	ofstream out(outFileName);
-	boost::archive::text_oarchive oa(out);	
-	index->write(oa);
+	CIndex *lt =0;
 
-	out.close();
-	out.clear();
 
-	//input the index from the external memory
-	CListIndex* indexx=new CListIndex;
-	ifstream in(outFileName);
-	boost::archive::text_iarchive ia(in);
-	indexx->read(ia);
+// corresponding rawdata and metric to different datatype
+	if(!strcmp(dataType,"vector")) 
+	{
+		rawData=CDoubleVector::loadData(dataFileName,maxDataSize,dataDimension);
+		metric = new CEuclideanDistance;
+	}
+	else if(!strcmp(dataType,"spectra")) 
+	{
+		rawData = CTandemSpectra::loadData(dataFileName);
+		metric = new CMSMSMetric;
+	}
+	else if(!strcmp(dataType,"string")) 
+	{
+		rawData = CStringObject::loadData( dataFileName);
+		metric = new CEditDistance;
+	}
+	else if(!strcmp(dataType,"rna")) 
+	{
+		rawData = CRNA::loadData(dataFileName, maxDataSize,fragmentLength);
+		metric = new CRNAMetric ;
+	}
+	else if(!strcmp(dataType,"image")) 
+	{
+		rawData = CImage::loadData(dataFileName ,cImageNum, feasNum);
+		metric = new CImageMetric ;	
+	}
+
+	else if(!strcmp(dataType,"dna")) 
+	{
+		rawData = CDNA::loadData( dataFileName,maxDataSize,fragmentLength);
+		metric = new CDNAMetric ;	
 	
+	}
 	
-	//test the index 
-	double d[5]={3.3,5.5,2.2,1.1,4.4};
-	int dim=5;
 
+//pivotSelectionMethod
+	if(!strcmp(pivotSelectionMethod,"FFT"))
+	{
+		psm=new CFFTPivotSelectionMethod;
+	}
+	else
+	{
+		cout<<"invalid pivot selection method"<<endl;
+	}
+
+// partitionMethod
+	if(!strcmp(partitionMethod,"BALANCE"))
+	{
+		pm=new CBalancePartitionMethod;
+	}
+// listType
+	if (!strcmp(indexType,"MVPIndex"))
+    {
+        lt=new CMVPIndex(*rawData,metric,psm,pm,numPivot,singlePivotFanout,maxLeafSize);
+    }
+	else if(!strcmp(indexType,"ListIndex"))
+	{
+		lt=new CListIndex(metric);
+	}
+    
+
+	//CIndex *mvpIndex=new CMVPIndex(rawData,metric,psm,pm,numPivot,singlePivotFanout,maxLeafSize,maxPathLength);
+
+	lt->bulkLoad(*rawData);
+
+	
+
+	ofstream ofs(IndexFileName);
+	boost::archive::text_oarchive oa(ofs);
+	lt->write(oa);
+	
+	ofs.close();
+	ofs.clear();
+
+	/*CMVPIndex *mvpIndexx=new CMVPIndex;
+	
+	ifstream ifs(IndexFileName);
+	boost::archive::text_iarchive ia(ifs);
+	mvpIndex->read(ia);
+
+	ifs.close();
+	ifs.clear();*/
+
+	double d[1]={50};
+	int dim=1;
 	CDoubleVector *cd=new CDoubleVector(d,dim);
 
-	double radius=69;//113;
+	double radius=10;
+
 	CRangeQuery *q=new CRangeQuery(radius,cd);
 
-	//search in the index
-	vector<CIndexObject*> ve=indexx->search(q);
-
-	cout<<"the size of result is:"<<ve.size()<<endl;
-	for(vector<CIndexObject*>::size_type i=0;i!=ve.size();i++)
+	vector<CIndexObject*> ve=lt->search(q);
+	cout<<"result size:"<<ve.size()<<endl;
+	for(vector<CIndexObject*>::iterator it=ve.begin();it!=ve.end();it++)
 	{
-		CDoubleVector *cdo=(CDoubleVector*)(ve[i]);
-        cout<<"distance q and cdo:"<<m->getDistance(q->getQueryObject(),cdo)<<endl;
-		for(int j=0;j<cdo->getLen();j++)
+		CDoubleVector *cd=(CDoubleVector*)(*it);
+
+		for(int j=0;j<cd->getLen();j++)
 		{
 			if(j==0)
 				cout<<"(";
-			if(j!=(cdo->getLen()-1))
-				cout<<(cdo->getData())[j]<<",";
+			if(j!=(cd->getLen()-1))
+				cout<<cd->getData()[j]<<",";
 			else
-				cout<<(cdo->getData())[j]<<")"<<endl;
+				cout<<cd->getData()[j]<<")"<<endl;
 		}
 	}
-	in.close();
-	in.clear();
+
+
 }
 
 
+template<typename type>
+type stringToNumber(const char str[])
+{
+	istringstream iss(str);
+
+	type data;
+
+	iss>>data;
+
+	return data;
+}
+
 
 /**
-  * -i input file name of data
-  * -o output file of the index
-  * -t define the type, now the parameter should be "dv" indicates DoubleVector after it
-  */
-int main(int argc, char* argv[])
+* This is the main entry point for building a VP Index. It can build either one one {@link VPIndex}, 
+* or a series of {@link VPIndex}es.
+* 
+* The basic commandline options are:
+* 
+* -i [data file name]
+* -psm [the pivot selection selection method: random, fft, center, pcaonfft, pca]
+* -np [number of pivots in an index node]
+* -pm [data partition method: balanced, clusteringkmeans, clusteringboundary]
+* -spf [fanout of a pivot]
+* -m [maximum number of children in leaf nodes]
+* -pl [path length, default 0]
+* -t [data type, one of "protein", "dna", "vector", "image", "msms"]
+* -g [debug level]
+* -frag [fragment length, only meaningful for sequences]
+* -dim [dimension of vector data to load]
+* -b [whether bucketing will be used, 1: use]
+* -r maximum radius for partition
+* -seta the value of A in the incremental pivot selection
+* -setn the value of N in the incremental pivot selection
+* -o the prefix of the output index file
+* -fftscale use for pcaonfft pivot selection method
+* For build multiple databases, use the following options:
+* 
+* -i [size of smallest database]
+* -a [size of largest database]
+* -s [step size of databases]
+* 
+* For using multiple regression algorithms, use the following options:
+* 
+* -sa [select algorithm]
+*  forward for forward selection, backward for backward selection, enumerate for enumerate selection
+* -ym [the method to calculate y array]
+*  standard for standard deviation method, average for average method
+* -tkind [test kind]
+*  ftest for F-test, rss for comparing rss
+*
+* -l [index type]  //MVPIndex||listIndex by 05/04/2013
+*
+* -I [cImage_Num] 
+* -E [feas_Num] 
+*
+* The {@link Metric} is hardcoded for each data type.
+* @author Rui Mao, Willard
+* @version 2007.07.12
+*/
+int main(int argc, char** argv)
 {
-	char* inFileName = NULL;
-	char* outFileName = NULL;
-	for (int i = 1; i < argc; i = i + 2)
+	static int verbose_flag;
+	int c;
+	char *dataFileName=0;
+	char *IndexFileName=0;
+	char *pivotSelectionMethod=0;
+	char *partitionMethod=0;
+	char *dataType=0;
+
+	char *indexType=0;////0504
+
+	int setA = 0;
+    int setN = 0;
+	int frag = 0;
+	int initialSize = 0;
+	int finalSize = 0;	
+	int stepSize = 0;	
+	int numPivot=0;
+	int singlePivotFanout=0;
+	int maxLeafSize=0;
+	int dim=0;
+
+	int cImageNum =0;////0504 para for Image data
+	int feasNum = 0;////0504  para for Image data
+    int fragmentLength=6;
+	if(argc<=0)
 	{
-		if(!strcmp(argv[i], "-i"))
+		dataFileName="./data/dataFile.txt";
+		dataFileName="./data/indexFile.txt";
+		pivotSelectionMethod="FFT";
+		partitionMethod="balance";
+		dataType="vector";
+		setA = 10000;
+		setN = 50;
+		frag = 6;
+		initialSize = 100000;
+		finalSize = 1000000;	
+		stepSize = 1000000;	
+		numPivot=3;
+		singlePivotFanout=3;
+		maxLeafSize=100;
+		dim=2;
+
+	
+		//listType = 0;
+
+	}
+
+	while (1)
+	{		
+		static struct option long_options[] =
 		{
-			inFileName = new char[strlen(argv[i+1]) + 1];
-			strcpy(inFileName, argv[i+1]);
-		}
-		else if(!strcmp(argv[i], "-o"))
+			{"verbose", no_argument, &verbose_flag, 1},
+			{"brief",   no_argument, &verbose_flag, 0},
+
+			{"dataFileName",    required_argument, 0 , 'n'},
+			{"psm",    required_argument, 0 , 'p'},
+			{"np",    required_argument, 0 , 'v'},
+			{"pm",    required_argument, 0 , 'M'},
+			{"spf",    required_argument, 0 , 'f'},
+			{"mls",    required_argument, 0 , 'm'},
+			{"dataType",    required_argument, 0 , 't'},
+			{"frag",    required_argument, 0 , 'F'},
+			{"dim",    required_argument, 0 , 'd'},
+			{"seta",    required_argument, 0 , 'A'},
+			{"setn",    required_argument, 0 , 'N'},
+			{"IndexFileName",    required_argument, 0 , 'o'},
+			{"initialSize",    required_argument, 0 , 'i'},
+			{"finalSize",    required_argument, 0 , 'a'},
+			{"stepSize",    required_argument, 0 , 's'},
+			{"indexType",    required_argument, 0 , 'l'},//0504
+			{"cImageNum",    required_argument, 0 , 'I'},//0504
+			{"feasNum",    required_argument, 0 , 'E'},//0504
+			{"frag",    required_argument, 0 , 'B'},//0504
+
+
+
+			{ no_argument , no_argument , no_argument , no_argument }
+		};
+		
+		int option_index = 0;
+		c = getopt_long(argc, argv, ("n:p:v:M:S:m:x:t:f:d:A:N:o:i:a:s:l:I:E:B:"), long_options, &option_index);
+		
+		// Check for end of operation or error
+		if (c == -1)
+			break;
+		
+		// Handle options
+		switch (c)
 		{
-			outFileName = new char[strlen(argv[i+1]) + 1];
-			strcpy(outFileName, argv[i+1]);
+		case 0:
+			/* If this option set a flag, do nothing else now. */
+			if (long_options[option_index].flag != 0)
+				break;
+			printf (("option %s"), long_options[option_index].name);
+			if (optarg)
+				printf ((" with arg %s"), optarg);
+			printf (("\n"));
+			break;
+			
+		case ('n'):	
+			dataFileName = new char[strlen(optarg)+1];
+			strcpy(dataFileName,optarg);
+			printf (("option -dataFileName with value `%s'\n"), dataFileName);
+			break;
+
+        case ('B'):	
+			fragmentLength = stringToNumber<int>(optarg);
+			printf (("option -fragmentLength with value `%s'\n"), fragmentLength);
+			break;
+
+		case ('p'):	
+			pivotSelectionMethod = new char[strlen(optarg)+1];
+			strcpy(pivotSelectionMethod,optarg);
+			printf (("option -pivotSelectionMethod with value `%s'\n"), pivotSelectionMethod);
+			break;
+
+		case ('v'):	
+			numPivot=stringToNumber<int>(optarg);
+			printf (("option -numPivot with value `%d'\n"), numPivot);
+			break;
+
+		case ('M'):	
+			partitionMethod = new char[strlen(optarg)+1];
+			strcpy(partitionMethod,optarg);
+			printf (("option -partitionMethod with value `%s'\n"), partitionMethod);
+			break;
+
+		case ('f'):	
+			singlePivotFanout=stringToNumber<int>(optarg);
+			printf (("option -singlePivotFanout with value `%d'\n"), singlePivotFanout);
+			break;
+
+		case ('m'):	
+			maxLeafSize=stringToNumber<int>(optarg);
+			printf (("option -maxLeafSize with value `%d'\n"), maxLeafSize);
+			break;
+
+		case ('t'):	
+			dataType = new char[strlen(optarg)+1];
+			strcpy(dataType,optarg);
+			printf (("option -dataType with value `%s'\n"), dataType);
+			break;
+
+		case ('F'):	
+			frag = stringToNumber<int>(optarg);
+			printf (("option -frag with value `%d'\n"), frag);
+			break;
+
+		case ('d'):	
+			dim=stringToNumber<int>(optarg);
+			printf (("option -dim with value `%d'\n"), dim);
+			break;
+
+		case ('A'):	
+			setA = stringToNumber<int>(optarg);
+			printf (("option -setA with value `%d'\n"), setA);
+			break;
+
+		case ('N'):	
+			setN = stringToNumber<int>(optarg);
+			printf (("option -setN with value `%d'\n"), setN);
+			break;
+
+		case ('o'):	
+			IndexFileName = new char[strlen(optarg)+1];
+			strcpy(IndexFileName,optarg);
+			printf (("option -IndexFileName with value `%s'\n"), IndexFileName);
+			break;
+
+		case ('i'):	
+			initialSize = stringToNumber<int>(optarg);
+			printf (("option -initialSize with value `%d'\n"), initialSize);
+			break;
+
+		case ('a'):	
+			finalSize = stringToNumber<int>(optarg);
+			printf (("option -finalSize with value `%d'\n"), finalSize);
+			break;
+
+		case ('s'):	
+			stepSize = stringToNumber<int>(optarg);
+			printf (("option -stepSize with value `%d'\n"), stepSize);
+			break;
+
+		case ('l'):	
+			indexType = new char[strlen(optarg)+1];
+			strcpy(indexType,optarg);
+			printf (("option -listType with value `%s'\n"), indexType);
+			break;
+
+	    case ('I'):	
+			cImageNum=stringToNumber<int>(optarg);
+			printf (("option -cImage_Num with value `%d'\n"), cImageNum);
+			break;
+		case ('E'):	
+			feasNum=stringToNumber<int>(optarg);
+			printf (("option -feas_Num with value `%d'\n"), feasNum);
+			break;
+
+
+		case '?':
+			/* getopt_long already printed an error message. */
+			break;
+
+		default:
+			abort();
 		}
 	}
-	batchBulkLoad(inFileName, outFileName);
+
+	if (verbose_flag)
+		printf (("verbose flag is set\n"));
+
+
+	if (optind < argc)
+	{
+		printf (("non-option ARGV-elements: "));
+		while (optind < argc) printf (("%s "), argv[optind++]);
+		printf (("\n"));
+	}
+
+	batchBulkLoad(dataFileName,IndexFileName,pivotSelectionMethod,partitionMethod,numPivot,singlePivotFanout,maxLeafSize,indexType,dataType,cImageNum,feasNum,fragmentLength,initialSize,dim);
+
 	system("pause");
 
 	return 0;

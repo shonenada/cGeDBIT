@@ -45,6 +45,8 @@ public:
 	/* function to create a leaf node*/
 	void createLeafNode(ForestTask *task,int treeIndex,vector<CIndexObject*>& ecludedData);
 
+    vector<CIndexObject*> search(CQuery* q);
+
 
 
     

@@ -2,7 +2,6 @@
 /**none parameter constructor*/
 CMVPInternalNode::CMVPInternalNode()
 {
-
 }
 
 /**constructor with parameters parameters
@@ -77,6 +76,7 @@ vector<double>& CMVPInternalNode::getChildUpperRange(int pivotIndex)
 @return the proper objects address list through a vector
 */
 
+
 vector<CIndexObject*>  CMVPInternalNode::search(CRangeQuery &q,CMetric &metric)
 {
 
@@ -121,12 +121,15 @@ vector<CIndexObject*>  CMVPInternalNode::search(CRangeQuery &q,CMetric &metric)
         for(i=0;i<numpivot;i++)
         {
 
-            if(abs(tempd[i]+r)<lower.at(i).at(j)||abs(tempd[i]-r)>upper.at(i).at(j))
+            if((tempd[i]+r)<lower.at(i).at(j)||(tempd[i]-r)>upper.at(i).at(j))
             {
 
 
-                if(abs(tempd[i]+upper.at(i).at(j))<=r)
+                if((tempd[i]+upper.at(i).at(j))<=r)
+                {
                     shouldBeSearched=true;
+                    break;
+                }
                 else
                 {
                     shouldBeSearched = false;

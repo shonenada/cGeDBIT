@@ -1,5 +1,5 @@
 #ifndef MVPINDEX_H
-#define MAPINDEX_H
+#define MVPINDEX_H
 
 #include "../indexalgorithm/PartitionMethod.h"
 #include "../indexalgorithm/PivotSelectionMethod.h"
@@ -38,7 +38,7 @@ public:
  * @param maxLeafSize: the maxmum number of objects in a leaf node of mvp-tree
  * @param maxPathLength: the maxmum number of distance values stored in a single leaf node, each distance value represent the distance from the object in every leaf node to the pivots in the parent node of the mvp-tree
 */
-	CMVPIndex(vector<CIndexObject*> &dataObjects, CMetric *metric, CPivotSelectionMethod* psm, CPartitionMethod* pm, int numPivot, int singlePivotFanout, int maxLeafSize);
+	CMVPIndex(vector<CIndexObject*> &dataObjects,CMetric *metric,CPivotSelectionMethod* psm,CPartitionMethod* pm,int numPivot,int singlePivotFanout,int maxLeafSize);
 
 	/** destructor */
 	~CMVPIndex();

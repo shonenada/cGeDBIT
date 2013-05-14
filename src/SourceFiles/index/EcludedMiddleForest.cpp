@@ -30,7 +30,7 @@ public:
 
 private:
     /**constructor*/
-    ForestTask()
+    ForestTask():dataList(*(new vector<CIndexObject*>))
     {
         this->parentIndex=0;
         this->myIndex=0;
@@ -53,7 +53,7 @@ private:
     *	@param myIndex current node index in parent node's children list
     *	@param myHeight height of current node
     */
-    ForestTask(vector<CIndexObject*> &dataList,CIndexNode *parentIndex,int start,int end,int myIndex,int myHeight)
+    ForestTask(vector<CIndexObject*> &dataList,CIndexNode *parentIndex,int start,int end,int myIndex,int myHeight):dataList(dataList)
     {
         this->dataList=dataList;
         this->parentIndex=parentIndex;
@@ -70,7 +70,7 @@ private:
     };
 
     /**a vector contains the address of all the obejct over which this mvp tree is built*/
-    vector<CIndexObject*> dataList;
+    vector<CIndexObject*> &dataList;
 
     /**address of parent node*/
     CIndexNode* parentIndex;
@@ -151,6 +151,7 @@ int ForestTask::getMyHeight()
 */
 void ForestTask::getPivots(vector<CIndexObject*> &pivots)
 {
+
     /**start should be the first pivot index in current partition*/ 
     int start=this->start+this->size-this->numPivots;
 
@@ -175,7 +176,7 @@ void ForestTask::getDataPoints(vector<CIndexObject*> &objectList)
     else
         mySize=this->size-this->numPivots;
 
-    for(int i=start;i<mySize;i++)
+    for(int i=start;i<start+mySize;i++)
     {
         objectList.push_back(this->dataList[i]);
     }
@@ -197,19 +198,22 @@ CIndexNode* CEcludedMiddleForest::createRoot(ForestTask *forestTask,int treeInde
     /**partition current partition into several smaller child partitons*/
 
 
-    CPartitionResults pr=this->pm->partition(this->metric,pivots,forestTask->dataList,0,forestTask->size-forestTask->numPivots,this->singlePivotFanout,this->maxLeafSize);
+    CPartitionResults pr=this->pm->partition(this->metric,pivots,forestTask->dataList,0,forestTask->size - forestTask->numPivots,this->maxRadius,this->singlePivotFanout,this->maxLeafSize,this->middlePorprotion);
 
     int childrenNumber=pr.partitionSize();
 
     /**create a internal node as root node and assign the address of this node to the root pointer of mvp tree*/
-    vector<CIndexNode*> subTreeNode(childrenNumber-1);
+    vector<CIndexNode*> subTreeNode(childrenNumber-2);
 
     vector<vector<double> >  lowerBounds=pr.getLowerBounds();
     vector<vector<double> >  upperBounds=pr.getUpperBounds();
 
-    lowerBounds.pop_back();
-    upperBounds.pop_back();
 
+    for(int i =0;i<numPivots;i++)
+    {
+        lowerBounds.at(i).pop_back();
+        upperBounds.at(i).pop_back();
+    }
 
 
 
@@ -229,11 +233,12 @@ CIndexNode* CEcludedMiddleForest::createRoot(ForestTask *forestTask,int treeInde
 
             //newForestTask=new ForestTask(ForestTask->dataList,root,pr.getPartition(i-1),ForestTask->start + ForestTask->size - ForestTask->numPivots,i,ForestTask->getMyHeight()+1);
 
-            for(int j=pr.getPartition(i-1);j<forestTask->start + forestTask->size - forestTask->numPivots;j++)
+            for(int j=pr.getPartition(i-1);j<pr.getPartition(i) - forestTask->numPivots+1;j++)
             {
                 ecludedData.push_back(forestTask->dataList.at(j));
             }
 
+            //newForestTask=new ForestTask(forestTask->dataList,root,pr.getPartition(i-1),pr.getPartition(i),i,forestTask->getMyHeight()+1);//!!!!!!!!!
 
         }
         else
@@ -245,10 +250,10 @@ CIndexNode* CEcludedMiddleForest::createRoot(ForestTask *forestTask,int treeInde
             newForestTask=new ForestTask(forestTask->dataList,root,pr.getPartition(i-1),pr.getPartition(i),i,forestTask->getMyHeight()+1);
 
 
-        }
+            this->forestTaskList.push_back(newForestTask);
+            /**push ForestTask into the queue*/
 
-        /**push ForestTask into the queue*/
-        this->forestTaskList.push_back(newForestTask);
+        }
     }
 
     return root;
@@ -259,99 +264,108 @@ CIndexNode* CEcludedMiddleForest::createRoot(ForestTask *forestTask,int treeInde
 void CEcludedMiddleForest::createInternalNode(ForestTask *forestTask,int treeIndex,vector<CIndexObject*>& ecludedData)
 {
     this->numInternalNodes ++;
-	cout<<"internalNode:"<<numInternalNodes<<endl;
+    cout<<"internalNode:"<<numInternalNodes<<endl;
 
 
 
 
-	/**get pivots of current node*/
-	vector<CIndexObject*> pivots;
-	forestTask->getPivots(pivots);
+    /**get pivots of current node*/
+    vector<CIndexObject*> pivots;
+    forestTask->getPivots(pivots);
 
 
 
 
-	/**partition current partition into several smaller child partitons*/
-	CPartitionResults pr=this->pm->partition(this->metric,pivots,forestTask->dataList,forestTask->start,forestTask->size-forestTask->numPivots,this->singlePivotFanout,this->maxLeafSize);
+    /**partition current partition into several smaller child partitons*/
+    CPartitionResults pr=this->pm->partition(this->metric,pivots,forestTask->dataList,forestTask->start,forestTask->size-forestTask->numPivots,this->maxRadius,this->singlePivotFanout,this->maxLeafSize,this->middlePorprotion);
 
 
 
 
-	int childrenNumber=pr.partitionSize();
+    int childrenNumber=pr.partitionSize();
+
+    vector<vector<double> >  lowerBounds=pr.getLowerBounds();
+    vector<vector<double> >  upperBounds=pr.getUpperBounds();
+
+    for(int i =0;i<numPivots;i++)
+    {
+        lowerBounds.at(i).pop_back();
+        upperBounds.at(i).pop_back();
+    }
 
 
 
+    /**create an internal node and assign its addres to the children list of parent node*/
+    vector<CIndexNode*> *subTreeNode=new vector<CIndexNode*>(childrenNumber-2);
+    CMVPInternalNode *child=new CMVPInternalNode(pivots,lowerBounds,upperBounds,*subTreeNode,forestTask->getMyHeight()+1);
+    (((CMVPInternalNode*)(forestTask->getParentIndex()))->getSubTree())[forestTask->myIndex-1]=child;
 
-	/**create an internal node and assign its addres to the children list of parent node*/
-	vector<CIndexNode*> *subTreeNode=new vector<CIndexNode*>(childrenNumber-1);
-	CMVPInternalNode *child=new CMVPInternalNode(pivots,pr.getLowerBounds(),pr.getUpperBounds(),*subTreeNode,forestTask->getMyHeight()+1);
-	(((CMVPInternalNode*)(forestTask->getParentIndex()))->getSubTree())[forestTask->myIndex-1]=child;
-
-	/**create several forestTasks base on each of the child partitions created before and then push these forestTasks to the global variable queue for the iteration of building child trees*/
-
-
-	for(int i=childrenNumber-1;i>0;i--)
-	{
-		ForestTask *newforestTask=0;
-
-		/**for the last child partition of current partition, the end index to create a ForestTask is the end index of current partiton, otherwise the end index is the start of next child partiton*/
-		if(i==childrenNumber-1)
-		{
-			cout<<"start-end:"<<pr.getPartition(i-1)<<"-"<<forestTask->start+forestTask->size-forestTask->numPivots<<endl;
-			cout<<"the object list size of sub-tree is:"<<forestTask->start+forestTask->size-forestTask->numPivots-pr.getPartition(i-1)<<endl;
+    /**create several forestTasks base on each of the child partitions created before and then push these forestTasks to the global variable queue for the iteration of building child trees*/
 
 
-			newforestTask = new ForestTask(forestTask->dataList,child,pr.getPartition(i-1),forestTask->start + forestTask->size - forestTask->numPivots,i,forestTask->getMyHeight()+1);
+    for(int i=childrenNumber-1;i>0;i--)
+    {
+        ForestTask *newforestTask=0;
 
-            for(int j=pr.getPartition(i-1);j<forestTask->start + forestTask->size - forestTask->numPivots;j++)
+        /**for the last child partition of current partition, the end index to create a ForestTask is the end index of current partiton, otherwise the end index is the start of next child partiton*/
+        if(i==childrenNumber-1)
+        {
+            cout<<"start-end:"<<pr.getPartition(i-1)<<"-"<<forestTask->start+forestTask->size-forestTask->numPivots<<endl;
+            cout<<"the object list size of sub-tree is:"<<forestTask->start+forestTask->size-forestTask->numPivots-pr.getPartition(i-1)<<endl;
+
+
+
+            for(int j=pr.getPartition(i-1);j < pr.getPartition(i) - forestTask->numPivots+1;j++)
             {
                 ecludedData.push_back(forestTask->dataList.at(j));
             }
 
 
-		}
-		else
-		{
-			cout<<"start-end:"<<pr.getPartition(i-1)<<"-"<<pr.getPartition(i)<<endl;
-			cout<<"the object list size of sub-tree is:"<<pr.getPartition(i)-pr.getPartition(i-1)<<endl;
-			newforestTask = new ForestTask(forestTask->dataList,child,pr.getPartition(i-1),pr.getPartition(i),i,forestTask->getMyHeight()+1);
-		}
+        }
+        else
+        {
+            cout<<"start-end:"<<pr.getPartition(i-1)<<"-"<<pr.getPartition(i)<<endl;
+            cout<<"the object list size of sub-tree is:"<<pr.getPartition(i)-pr.getPartition(i-1)<<endl;
+            newforestTask = new ForestTask(forestTask->dataList,child,pr.getPartition(i-1),pr.getPartition(i),i,forestTask->getMyHeight()+1);
 
-		this->forestTaskList.push_back(newforestTask);
+            this->forestTaskList.push_back(newforestTask);
+        }
 
-	}
+
+
+    }
 }
 
 void CEcludedMiddleForest::createLeafNode(ForestTask *forestTask,int treeIndex,vector<CIndexObject*>& ecludedData)
 {
     this->numLeaf++;
-	cout<<"leafNode:"<<numLeaf<<endl;
-	/**get all the objects of current partition*/
-	vector<CIndexObject*> children;
-	forestTask->getDataPoints(children);
+    cout<<"leafNode:"<<numLeaf<<endl;
+    /**get all the objects of current partition*/
+    vector<CIndexObject*> children;
+    forestTask->getDataPoints(children);
+    cout<<"child.size:"<<children.size()<<endl;
+    /**get all the pivots of current node*/
+    vector<CIndexObject*> pivots;
+    forestTask->getPivots(pivots);
 
-	/**get all the pivots of current node*/
-	vector<CIndexObject*> pivots;
-	forestTask->getPivots(pivots);
+    vector<vector<double> > distance;
 
-	vector<vector<double> > distance;
+    /**calcualte the distance from each of the objects of current parition to every pivots*/
+    for(vector<CIndexObject*>::size_type i=0;i<pivots.size();i++)
+    {
+        vector<double> ve;
 
-	/**calcualte the distance from each of the objects of current parition to every pivots*/
-	for(vector<CIndexObject*>::size_type i=0;i<pivots.size();i++)
-	{
-		vector<double> ve;
+        for(vector<CIndexObject*>::size_type j=0;j<children.size();j++)
+        {
+            ve.push_back(this->metric->getDistance(children[j],pivots[i]));
+        }
 
-		for(vector<CIndexObject*>::size_type j=0;j<children.size();j++)
-		{
-			ve.push_back(this->metric->getDistance(children[j],pivots[i]));
-		}
-		distance.push_back(ve);
-	}
+        distance.push_back(ve);
+    }
 
-	/**create a leaf node and assign its memory address to the child list of parent node*/
-	CMVPLeafNode *mvpLeafNode=new CMVPLeafNode(pivots,children,distance,forestTask->getMyHeight()+1);
-	(((CMVPInternalNode*)(forestTask->getParentIndex()))->getSubTree())[forestTask->myIndex-1]=mvpLeafNode;
-
+    /**create a leaf node and assign its memory address to the child list of parent node*/
+    CMVPLeafNode *mvpLeafNode=new CMVPLeafNode(pivots,children,distance,forestTask->getMyHeight()+1);cout<<"parent.child.size:"<<(((CMVPInternalNode*)(forestTask->getParentIndex()))->getSubTree()).size()<<endl;
+    (((CMVPInternalNode*)(forestTask->getParentIndex()))->getSubTree())[forestTask->myIndex-1]=mvpLeafNode;
 
 }
 
@@ -373,7 +387,7 @@ vector<CIndexObject*> CEcludedMiddleForest::createTree(vector<CIndexObject*> &da
         /**delete current forestTask from the queue*/
         this->forestTaskList.erase(ForestTaskToGet);
 
-        if(this->roots[treeIndex]==0)
+        if(roots.size()<treeIndex+1)
         {
             /**get the number of pivot*/
             numPivots = (this->numPivots>=forestTask->size) ? forestTask->size : this->numPivots;
@@ -386,7 +400,7 @@ vector<CIndexObject*> CEcludedMiddleForest::createTree(vector<CIndexObject*> &da
             forestTask->groupPivotsAtEnd(pivotsIndex);
 
             /**create the mvp-tree root*/
-            this->roots[treeIndex]=createRoot(forestTask,treeIndex,ecludedData);
+            this->roots.push_back(createRoot(forestTask,treeIndex,ecludedData));
         }
         else
         {
@@ -410,7 +424,7 @@ vector<CIndexObject*> CEcludedMiddleForest::createTree(vector<CIndexObject*> &da
                 createLeafNode(forestTask,treeIndex,ecludedData);
         }
 
-        
+
     }
 
 
@@ -420,11 +434,71 @@ vector<CIndexObject*> CEcludedMiddleForest::createTree(vector<CIndexObject*> &da
 
 void CEcludedMiddleForest::bulkLoad(vector<CIndexObject*> & dataList)
 {
+
+
+    //roots.push_back(newRoot);
+
+    vector<CIndexObject*> formerEcludedData = createTree(dataList,0);
+    vector<CIndexObject*>* ecludedData;
+
+    for(int i=1;;i++)
+    {
+        if(formerEcludedData.size()<=maxLeafSize)
+        {
+            break;
+        }
+
+        formerEcludedData = createTree(formerEcludedData,i);
+
+    }
+
+
+    vector<CIndexObject*> pivots;
+    vector<CIndexObject*> children;
+
+    vector<int> pivotsIndex = this->psm->selectPivots(metric,formerEcludedData,numPivots);
+    ForestTask forestTask(formerEcludedData,NULL,0,formerEcludedData.size(),0,0);
+
+    forestTask.groupPivotsAtEnd(pivotsIndex);
+
+    forestTask.getPivots(pivots);
+    forestTask.getDataPoints(children);
+
+    vector<vector<double> > distance;
+
+    /**calcualte the distance from each of the objects of current parition to every pivots*/
+    for(vector<CIndexObject*>::size_type i=0;i<pivots.size();i++)
+    {
+        vector<double> ve;
+
+        for(vector<CIndexObject*>::size_type j=0;j<children.size();j++)
+        {
+            ve.push_back(this->metric->getDistance(children[j],pivots[i]));
+        }
+        distance.push_back(ve);
+    }
+
+    CIndexNode* newRoot = new CMVPLeafNode(pivots,children,distance,0);
+    roots.push_back(newRoot);
+
 }
 
 
 
 
+vector<CIndexObject*> CEcludedMiddleForest:: search(CQuery* q)
+{
+    vector<CIndexObject*> rs;
+
+    CRangeQuery *rq=(CRangeQuery*)q;
+    for(int i=0;i<roots.size();i++)
+    {
+        vector<CIndexObject*> temprs = roots.at(i)->search(*rq,*metric);
+
+        rs.insert(rs.begin(),temprs.begin(),temprs.end());
+    }
+    return rs;
+}
 
 
 

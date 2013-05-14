@@ -210,7 +210,7 @@ int CImage::hashCode()
  * @param int cImage_Num : The number of datas
  * @param int feas_Num : The number of features
  */
-vector<CIndexObject*> CImage::loadData(string fileName , int cImage_Num, int  feas_Num)
+vector<CIndexObject*>* CImage::loadData(string fileName , int cImage_Num, int  feas_Num)
 {
 	ifstream in(fileName);
 	int i,j;
@@ -228,5 +228,5 @@ vector<CIndexObject*> CImage::loadData(string fileName , int cImage_Num, int  fe
 		temp = new CImage(feas_Num,data);
 		a.push_back(temp);
 	}
-	return a;
+	return &a;
 }

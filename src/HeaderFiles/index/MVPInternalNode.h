@@ -27,7 +27,7 @@ public:
 	   @para child a sub-tree address vector
 	   @para myHeight the layer of this node
 	*/
-	CMVPInternalNode(vector<CIndexObject*> pivots,vector<vector<double> > lower,vector<vector<double> > upper,vector<CIndexNode*> child,int myHeight);
+	CMVPInternalNode(vector<CIndexObject*> pivots,vector<vector<double>> lower,vector<vector<double>> upper,vector<CIndexNode*> child,int myHeight);
 	
 	/**destructor*/
 	~CMVPInternalNode();
@@ -82,9 +82,9 @@ private:
 	/**this is a sub-tree root addresses list*/
 	vector<CIndexNode*> child;
 	/**In this two dimension vector contains the minimum distance value of data objects in each sub-partition to every given pivots. The total  number of rows of this vector is equal to the number of all pivots in this node while the number of column is equal to the number of child nodes in this node*/
-	vector<vector<double> > upper;
+	vector<vector<double>> upper;
 	/**In this two dimension vector contains the maximum distance value of data objects in each sub-partition to every given pivots. The total  number of rows of this vector is equal to the number of all pivots in this node while the number of column is equal to the number of child nodes in this node*/
-	vector<vector<double> > lower;
+	vector<vector<double>> lower;
 
 };
 /**@}*/

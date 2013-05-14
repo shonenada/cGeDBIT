@@ -12,8 +12,8 @@
 
 #include <iostream>
 #include <fstream>
-#include<queue>
-#include<vector>
+#include <queue>
+#include <vector>
 using namespace std;
 class CTandemSpectra:
 	public CIndexObject

@@ -88,19 +88,20 @@ int CRNA::getSymbolID(char symbol)
  *  how much pointer point to it, and this counting called reference counting.
  *  When reference counting reduces to 0, this object will destory automatically.
  * By using shared_ptr<T>, we can ensure no memory leak.
- * @return vector<shared_ptr<CRNA> >
+ * @return vector<shared_ptr<CRNA>>
  *   - return a vector stored RNA fragments.
  * 
 */
-vector<shared_ptr<CRNA> > CRNA::loadData(string filename, int maxSize, int fragmentLength){
-	vector<shared_ptr<CRNA> > data;
+vector<CIndexObject*>* CRNA::loadData(string filename, int maxSize, int fragmentLength){
+	
+	vector<CIndexObject*> data;
+	vector<CRNA*> rnas;
 	
 	ifstream infile(filename, ios::in);
-	vector<shared_ptr<CRNA> > rnas;
 	
 	if(!infile.is_open()){
 		cerr << "Stop! Cannot open the file." << endl;
-		return data;
+		return &data;
 	}
 
 	string ident = "";
@@ -119,7 +120,7 @@ vector<shared_ptr<CRNA> > CRNA::loadData(string filename, int maxSize, int fragm
 			if(line.at(0) == '>'){
 				if(currentSequence.size() > 0)
 				{
-					shared_ptr<CRNA> temp(new CRNA(ident, currentSequence));
+					CRNA* temp = new CRNA(ident, currentSequence);
 					rnas.push_back(temp);
 					counter += currentSequence.size();
 					currentSequence = "";
@@ -132,20 +133,20 @@ vector<shared_ptr<CRNA> > CRNA::loadData(string filename, int maxSize, int fragm
 		}
 	}
 	if(currentSequence.size() > 0){
-		shared_ptr<CRNA> temp(new CRNA(ident, currentSequence));
+		CRNA* temp = new CRNA(ident, currentSequence);
 		rnas.push_back(temp);
 	}
 	for(i=0;i<rnas.size();i++){
-		CRNA* rna = rnas[i].get();
+		CRNA* rna = rnas[i];
 		int totalSize = rna->getSize() - fragmentLength;
 		string seq_id = rna->_sequenceid;
 		string seq = rna->_sequence;
-		for(int j=0;j<totalSize;j++){
-			shared_ptr<CRNA> temp(new CRNA(seq_id, seq.substr(j, fragmentLength)));
+		for(int j=0;j<totalSize-1;j++){
+			CRNA* temp = new CRNA(seq_id, seq.substr(j, fragmentLength));
 			data.push_back(temp);
 		}
 	}
-	return data;
+	return &data;
 }
 
 /**

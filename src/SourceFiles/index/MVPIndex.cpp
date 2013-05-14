@@ -213,7 +213,7 @@ CMVPIndex::CMVPIndex()
  * @param maxLeafSize: the maxmum number of objects in a leaf node of mvp-tree
  * @param maxPathLength: the maxmum number of distance values stored in a single leaf node, each distance value represent the distance from the object in every leaf node to the pivots in the parent node of the mvp-tree
 */
-CMVPIndex::CMVPIndex(vector<CIndexObject*> &dataObjects, CMetric *metric, CPivotSelectionMethod* psm, CPartitionMethod* pm, int numPivots, int singlePivotFanout, int maxLeafSize)
+CMVPIndex::CMVPIndex(vector<CIndexObject*> &dataObjects,CMetric *metric,CPivotSelectionMethod* psm,CPartitionMethod* pm,int numPivots,int singlePivotFanout,int maxLeafSize)
 {
 	this->root=0;
 	this->metric=metric;
@@ -300,7 +300,7 @@ void CMVPIndex::createLeafNode(Task* task)
 	vector<CIndexObject*> pivots;
 	task->getPivots(pivots);
 
-	vector<vector<double> > distance;
+	vector<vector<double>> distance;
 
 	/**calcualte the distance from each of the objects of current parition to every pivots*/
 	for(vector<CIndexObject*>::size_type i=0;i<pivots.size();i++)
@@ -423,5 +423,5 @@ void CMVPIndex::write(text_oarchive &out)
  */
 void CMVPIndex::read(text_iarchive &in)
 {
-	in >> *this;
+	in>>*this;
 }

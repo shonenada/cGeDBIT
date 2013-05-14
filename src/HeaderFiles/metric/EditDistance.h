@@ -2,15 +2,15 @@
 #define EDITDISTANCE_H
 
 #include <string>
+#include "Metric.h"
 
 #include "../../HeaderFiles/objects/IndexObject.h"
 #include "../../HeaderFiles/objects/StringObject.h"
 
 
 using namespace std;
-#pragma once
 
-class CEditDistance
+class CEditDistance:public CMetric
 {
 public:
 	CEditDistance(void);

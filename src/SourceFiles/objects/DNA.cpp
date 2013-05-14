@@ -92,15 +92,15 @@ int CDNA::getSymbolID(char symbol)
  *   - return a vector stored DNA fragments.
  * 
 */
-vector<shared_ptr<CDNA> > CDNA::loadData(string filename, int maxSize, int fragmentLength){
-	vector<shared_ptr<CDNA> > data;
+vector<CIndexObject*>* CDNA::loadData(string filename, int maxSize, int fragmentLength){
 	
+	vector<CIndexObject*> data;
+	vector<CDNA*> dnas;
 	ifstream infile(filename, ios::in);
-	vector<shared_ptr<CDNA> > dnas;
 	
 	if(!infile.is_open()){
 		cerr << "Stop! Cannot open the file." << endl;
-		return data;
+		return &data;
 	}
 
 	string ident = "";
@@ -119,7 +119,7 @@ vector<shared_ptr<CDNA> > CDNA::loadData(string filename, int maxSize, int fragm
 			if(line.at(0) == '>'){
 				if(currentSequence.size() > 0)
 				{
-					shared_ptr<CDNA> temp(new CDNA(ident, currentSequence));
+					CDNA* temp = new CDNA(ident, currentSequence);
 					dnas.push_back(temp);
 					counter += currentSequence.size();
 					currentSequence = "";
@@ -132,20 +132,20 @@ vector<shared_ptr<CDNA> > CDNA::loadData(string filename, int maxSize, int fragm
 		}
 	}
 	if(currentSequence.size() > 0){
-		shared_ptr<CDNA> temp(new CDNA(ident, currentSequence));
+		CDNA* temp = new CDNA(ident, currentSequence);
 		dnas.push_back(temp);
 	}
 	for(i=0;i<dnas.size();i++){
-		CDNA* dna = dnas[i].get();
+		CDNA* dna = dnas[i];
 		int totalSize = dna->getSize() - fragmentLength;
 		string seq_id = dna->_sequenceid;
 		string seq = dna->_sequence;
-		for(int j=0;j<totalSize;j++){
-			shared_ptr<CDNA> temp(new CDNA(seq_id, seq.substr(j, fragmentLength)));
+		for(int j=0;j<totalSize-1;j++){
+			CDNA* temp = new CDNA(seq_id, seq.substr(j, fragmentLength));
 			data.push_back(temp);
 		}
 	}
-	return data;
+	return &data;
 }
 
 /**

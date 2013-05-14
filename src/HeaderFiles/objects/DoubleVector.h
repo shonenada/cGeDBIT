@@ -20,7 +20,7 @@ public:
     ~CDoubleVector(void);
 
 
-	static vector<CIndexObject*> loadData(string fileName);
+	static vector<CIndexObject*>* loadData(string fileName,int maxDataNum,int dimension);
 
     double* getData() const;
     int getLen() const;

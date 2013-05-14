@@ -26,7 +26,7 @@ public:
 	*/
 	virtual CPartitionResults partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data,int first,int size,int numPartitions,int maxLeafSize)=0;
 
-     virtual CPartitionResults partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data,int first,int size,int maxRadius,int numPartitions,int maxLeafSize,double middleProportion)=0;
+     virtual CPartitionResults partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data,int first,int size,double maxRadius,int numPartitions,int maxLeafSize,double middleProportion)=0;
 	
 	/**fucntion for serialization*/
 	friend class boost::serialization::access;

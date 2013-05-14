@@ -1,6 +1,22 @@
 #include "../../HeaderFiles/indexalgorithm/EcludedMiddlePartitionMethod.h"
 
 
+
+void extract(vector<CIndexObject*> &data,vector<double> &distance,int start,int target,int first)
+{
+
+    data.insert(data.begin()+start,data.at(target+first));
+    data.erase(data.begin()+(target+first+1));
+    distance.insert(distance.begin()+start,distance[target]);
+    distance.erase(distance.begin()+(target+1));
+
+}
+
+
+
+/*==============================================================================================================================*/
+
+
 CEcludedMiddlePartitionMethod::CEcludedMiddlePartitionMethod(void)
 {
 }
@@ -10,10 +26,10 @@ CEcludedMiddlePartitionMethod::~CEcludedMiddlePartitionMethod(void)
 {
 }
 
-CPartitionResults CEcludedMiddlePartitionMethod::partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data,int first,int size,int maxRadius,int numPartitions,int maxLeafSize,double middleProportion)
+CPartitionResults CEcludedMiddlePartitionMethod::partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data,int first,int size,double maxRadius,int numPartitions,int maxLeafSize,double middleProportion)
 {
 
-    int i,j;
+    int i,j,k;
 
     const int numPivots = pivots.size();
 
@@ -37,22 +53,12 @@ CPartitionResults CEcludedMiddlePartitionMethod::partition(CMetric *metric, cons
         //wrapper.push_back(tempPair);
     }
 
-    int mid =  getMid(distance);
 
-    double midRadius = distance[mid];
+
+    double midRadius = getMid(distance);
     //the 
-    for(i=0;i<2;i++)
-    {
-        LowerBound[i]=distance[i];
-        upperBound[i]=distance[i];
-    }
 
 
-    //int lowerIndex = mid-(middleProportion*size)/2;
-    //int hyperIndex = mid+(middleProportion*size)/2;
-
-
-    // double temp;//for swapping objects and its distance with pivot
 
 
 
@@ -60,20 +66,26 @@ CPartitionResults CEcludedMiddlePartitionMethod::partition(CMetric *metric, cons
     offsets.at(0)=first;    
     offsets.at(3)=first+size;
 
+    offsets[1]= offsets[0];
 
 
-    for(i=first,offsets[1]= offsets[0];i<size+first;i++)
+
+
+    LowerBound[0]=distance.at(getMin(distance,0,distance.size()));
+    upperBound[0]=LowerBound[0];
+
+    for(int i=first;i<size+first;i++)
     { 
         if(distance[i-first]<midRadius-maxRadius)
         {
 
 
 
-            if(distance[i-first]<=LowerBound[1])
+            if(distance[i-first]<=LowerBound[0])
             {
                 LowerBound[0]=distance[i-first];
             }
-            if(distance[i-first]>=upperBound[1])
+            if(distance[i-first]>=upperBound[0])
             {
                 upperBound[0]=distance[i-first];
             }
@@ -87,9 +99,16 @@ CPartitionResults CEcludedMiddlePartitionMethod::partition(CMetric *metric, cons
         }
     }
 
-    for(i=offsets[1],offsets[2]=offsets[1];i<size+first;i++)
+
+    offsets[2]=offsets[1];
+    LowerBound[1]=midRadius+maxRadius;
+    upperBound[1]=LowerBound[1];
+
+
+
+    for(int i=offsets[1];i<size+first;i++)
     { 
-        if(distance[i-first]>=midRadius-maxRadius)
+        if(distance[i-first]>=midRadius+maxRadius)
         {    
 
 
@@ -113,7 +132,7 @@ CPartitionResults CEcludedMiddlePartitionMethod::partition(CMetric *metric, cons
     }
 
 
-
+    //
 
 
 
@@ -123,41 +142,95 @@ CPartitionResults CEcludedMiddlePartitionMethod::partition(CMetric *metric, cons
     {               
         if(i>0)
         {
-            j=getMin(distance,offsets[2],offsets[3]);
 
-            upperBound[0]=distance[j];
 
-            data.insert(data.begin()+offsets[1],data.at(j+first));
-            data.erase(data.begin()+(j+1));
-            distance.insert(distance.begin()+offsets[1],distance[j]);
-            distance.erase(distance.begin()+(j+1));
-            
+            j=getMin(distance,offsets[2]-first,offsets[3]-first);
 
-            offsets[1]++;
-            offsets[2]++;
-            
+            while (abs(offsets[3]-offsets[2])>1)
+            {
+                upperBound[0]=distance[j];
+                extract(data,distance,offsets[1]-first,j,first);
+                offsets[1]++;
+                offsets[2]++;
+
+                k=getMin(distance,j+1,offsets[3]-first);
+
+                if(k>=0&&distance[j]==distance[k])
+                {
+                    j=k;
+                }
+                else
+                {
+                    break;
+                }
+
+
+            }
+
+
+            //upperBound[0]=distance[j];
+
+            //data.insert(data.begin()+offsets[1],data.at(j+first));
+            //data.erase(data.begin()+(j+first+1));
+            //distance.insert(distance.begin()+offsets[1],distance[j]);
+            //distance.erase(distance.begin()+(j+1));
+
+
+            //offsets[1]++;
+            //offsets[2]++;
+
 
         }
         if(i<0)
         { 
 
-            j=getMax(distance,offsets[2],offsets[3]);
 
-            LowerBound[1]=distance[j]; 
 
-            data.insert(data.begin()+offsets[2],data.at(j+first));
-            data.erase(data.begin()+(j+first+1));
-            distance.insert(distance.begin()+offsets[2]-first,distance[j]);
-            distance.erase(distance.begin()+(j+1));           
+            j=getMax(distance,offsets[2]-first,offsets[3]-first);
 
-           
-            offsets[2]++;
+            while (abs(offsets[3]-offsets[2])>1)
+            {
+                LowerBound[1]=distance[j];
+                extract(data,distance,offsets[2]-first,j,first);            
+                offsets[2]++;
+
+
+                k=getMax(distance,j+1,offsets[3]-first);
+
+
+                if(k>=0&&distance[j]==distance[k])
+                {
+                    j=k;
+                }
+                else
+                {
+                    break;
+                }
+
+
+
+            }
+
+
+            //j=getMax(distance,offsets[2],offsets[3]);
+
+            //LowerBound[1]=distance[j]; 
+
+            ///*  data.insert(data.begin()+offsets[2],data.at(j+first));
+            //data.erase(data.begin()+(j+first+1));
+            //distance.insert(distance.begin()+offsets[2]-first,distance[j]);
+            //distance.erase(distance.begin()+(j+1));    */       
+
+
+            //extract(data,distance,offsets[2],j,first);
+
+            //offsets[2]++;
         }
 
     }
     //if proportion of middle set bigger than m , decrease its size;
-    LowerBound[2]=distance[getMin(distance,offsets[2],offsets[3])];
-    upperBound[2]=distance[getMax(distance,offsets[2],offsets[3])];
+    LowerBound[2]=distance[getMin(distance,offsets[2]-first,offsets[3]-first)];
+    upperBound[2]=distance[getMax(distance,offsets[2]-first,offsets[3]-first)];
 
     /*data.insert(data.end(),data.begin()+offsets[3],data.begin()+offsets[4]+1);
     data.erase(data.begin()+offsets[3],data.begin()+offsets[4]);    */
@@ -167,20 +240,30 @@ CPartitionResults CEcludedMiddlePartitionMethod::partition(CMetric *metric, cons
 
 
 
-    vector<vector<double>> lowerBounds;	
+    vector<vector<double> > lowerBounds;	
     lowerBounds.push_back(LowerBound);
 
-    vector<vector<double>> upperBounds;
+    vector<vector<double> > upperBounds;
     upperBounds.push_back(upperBound);
-               
+
+    /*  for(int i=0;i<offsets.size();i++)
+    {
+    offsets.at(i)-=first;
+    }*/
+
     return CPartitionResults(offsets,lowerBounds,upperBounds);
 }
 
 int CEcludedMiddlePartitionMethod::getMin(vector<double> &distance,int begin,int end)
 {
-    int minIndex=0;
+    if(end<begin||begin>=distance.size())
+        return -1;
 
-    double min = distance[0];
+    int minIndex=begin;
+
+    double min = distance[begin];
+
+
 
     for (int i = begin;i<end;i++)
     {
@@ -196,9 +279,14 @@ int CEcludedMiddlePartitionMethod::getMin(vector<double> &distance,int begin,int
 
 int CEcludedMiddlePartitionMethod::getMax(vector<double> &distance,int begin,int end)
 {
-    int maxIndex=0;
+   if(end<begin||begin>=distance.size())
+        return -1;
 
-    double max = distance[0];
+    int maxIndex=begin;
+
+    double max = distance[begin];
+
+
 
     for (int i = begin;i<end;i++)
     {
@@ -212,10 +300,10 @@ int CEcludedMiddlePartitionMethod::getMax(vector<double> &distance,int begin,int
     return maxIndex;
 }
 
-int CEcludedMiddlePartitionMethod::getMid(vector<double> &distance)
+double CEcludedMiddlePartitionMethod::getMid(vector<double> distance)
 {
     nth_element(distance.begin(),distance.begin()+distance.size()/2,distance.end());
-    return distance.size()/2;
+    return distance.at(distance.size()/2);
 
 
 
@@ -223,5 +311,6 @@ int CEcludedMiddlePartitionMethod::getMid(vector<double> &distance)
 
 CPartitionResults CEcludedMiddlePartitionMethod:: partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data, int first, int size, int numPartitions, int maxLeafSize)
 {
-    return CPartitionResults();
+
+    return partition(metric, pivots,data, first,size,5/*maxR*/,numPartitions,maxLeafSize,0.3 /*middleProportion*/);
 }

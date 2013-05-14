@@ -1,16 +1,11 @@
 cmake_minimum_required(VERSION 2.8)
 project(cGeDBIT)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
-# Set configure for boost library
-set(BOOST_INCLUDE_DIR /usr/local/include/boost-1_53)
-set(BOOST_LIBRARY_DIR /usr/local/lib)
-
-# Find boost library
-find_package(Boost)
-include_directories(${BOOST_INCLUDE_DIR})
-link_directories(${BOOST_LIBRARY_DIR})
+set (Boost_USE_STATIC_LIBS ON)
+set (Boost_USE_MULTIHREADER ON)
+set (Boost_USE_STATIC_RUNTIME OFF)
 
 # Include the test data
 configure_file(data/rawdata.txt
@@ -57,8 +52,10 @@ add_library(cGeDBIT_objects
             src/SourceFiles/objects/Image.cpp
             src/SourceFiles/objects/RNA.cpp
             src/SourceFiles/objects/StringObject.cpp
-            src/SourceFiles/objects/TandemSpectra.cpp
-            src/SourceFiles/objects/DoubleIndexObjectPair.cpp)
+            src/SourceFiles/objects/TandemSpectra.cpp)
+
+add_library(cGeDBIT_type
+            src/SourceFiles/type/DoubleIndexObjectPair.cpp)
 
 # Add query library cGeDBIT
 add_library(cGeDBIT_querys
@@ -69,11 +66,14 @@ add_library(cGeDBIT_querys
 add_library(cGeDBIT_utils
             src/SourceFiles/util/getopt.cpp)
 
-# Add executale files
-add_executable(cGeDBIT src/app/BuildMVPIndex.cpp)
 
-# Link libraries.
-target_link_libraries(cGeDBIT cGeDBIT_indexs cGeDBIT_indexalgorithms
-                      cGeDBIT_metrics cGeDBIT_objects cGeDBIT_querys
-                      cGeDBIT_utils ${BOOST_LIBRARIES})
+find_package (Boost 1.53 COMPONENTS)
+if (Boost_FOUND)
+    include_directories (${Boost_INCLUDE_DIRS})
+    add_executable(cGeDBIT src/app/BuildIndex.cpp)
+    # Link libraries.
+    target_link_libraries(cGeDBIT cGeDBIT_indexs cGeDBIT_indexalgorithms
+                          cGeDBIT_metrics cGeDBIT_objects cGeDBIT_querys
+                          cGeDBIT_type cGeDBIT_utils ${Boost_LIBRARIES})
+endif()
 

@@ -38,17 +38,20 @@ int CDoubleVector::getLen() const
 
 
 
-vector<CIndexObject*> CDoubleVector::loadData(string _fileName)
+vector<CIndexObject*>* CDoubleVector::loadData(string fileName,int maxDataNum,int dimension)
 {
-	ifstream in(_fileName);
+	ifstream in(fileName);
 	int num, dim, i, j;
-	vector<CIndexObject*> a;
+	vector<CIndexObject*> *a=new vector<CIndexObject*>;
 	double* data=NULL;
 	CIndexObject* temp=NULL;
 
 	in >> num >> dim;	
 	
-	for(i=0; i<num; i++)
+    dim = dim>dimension ? dimension:dim;
+    num = num>maxDataNum ? maxDataNum:num;
+
+	for(i=0;i<num;i++)
 	{
 		data = new double[dim];
 		for(j=0; j<dim; j++)
@@ -57,13 +60,11 @@ vector<CIndexObject*> CDoubleVector::loadData(string _fileName)
 		}
 		
 		temp = new CDoubleVector(data, dim);
-		a.push_back(temp);
+		a->push_back(temp);
 	}
 
     return a;
 }
-
-
 
 
 void CDoubleVector::write(text_oarchive &out)
