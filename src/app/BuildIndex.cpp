@@ -34,7 +34,6 @@ EXPRESSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "../HeaderFiles/indexalgorithm/BalancePartitionMethod.h"
 #include "../HeaderFiles/query/Query.h"
 #include "../HeaderFiles/query/RangeQuery.h"
-#include "../HeaderFiles/util/getopt.h"
 
 #include "../HeaderFiles/metric/DNAMetric.h"
 #include "../HeaderFiles/metric/EditDistance.h"
@@ -42,6 +41,18 @@ EXPRESSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "../HeaderFiles/metric/MSMSMetric.h"
 #include "../HeaderFiles/metric/RNAMetric.h"//#include "../HeaderFiles/metric/PeptideMetric.h"
 
+#if defined(_MSC_VER)
+#include "../HeaderFiles/util/getopt_win.h"
+#include <tchar.h>
+#else
+#include "../HeaderFiles/util/getopt.h"
+#define ARG_NONE no_argument
+#define ARG_NULL no_argument
+#define ARG_REQ required_argument
+#define getopt_long_a getopt_long
+#define optarg_a optarg
+#define option_a option
+#endif
 
 #include <stdlib.h>
 #include <iostream>
@@ -291,38 +302,38 @@ int main(int argc, char** argv)
 
 	while (1)
 	{		
-		static struct option long_options[] =
+		static struct option_a long_options[] =
 		{
-			{"verbose", no_argument, &verbose_flag, 1},
-			{"brief",   no_argument, &verbose_flag, 0},
+			{"verbose", ARG_NONE, &verbose_flag, 1},
+			{"brief",   ARG_NONE, &verbose_flag, 0},
 
-			{"dataFileName",    required_argument, 0 , 'n'},
-			{"psm",    required_argument, 0 , 'p'},
-			{"np",    required_argument, 0 , 'v'},
-			{"pm",    required_argument, 0 , 'M'},
-			{"spf",    required_argument, 0 , 'f'},
-			{"mls",    required_argument, 0 , 'm'},
-			{"dataType",    required_argument, 0 , 't'},
-			{"frag",    required_argument, 0 , 'F'},
-			{"dim",    required_argument, 0 , 'd'},
-			{"seta",    required_argument, 0 , 'A'},
-			{"setn",    required_argument, 0 , 'N'},
-			{"IndexFileName",    required_argument, 0 , 'o'},
-			{"initialSize",    required_argument, 0 , 'i'},
-			{"finalSize",    required_argument, 0 , 'a'},
-			{"stepSize",    required_argument, 0 , 's'},
-			{"indexType",    required_argument, 0 , 'l'},//0504
-			{"cImageNum",    required_argument, 0 , 'I'},//0504
-			{"feasNum",    required_argument, 0 , 'E'},//0504
-			{"frag",    required_argument, 0 , 'B'},//0504
+			{"dataFileName",    ARG_REQ, 0 , 'n'},
+			{"psm",    ARG_REQ, 0 , 'p'},
+			{"np",    ARG_REQ, 0 , 'v'},
+			{"pm",    ARG_REQ, 0 , 'M'},
+			{"spf",    ARG_REQ, 0 , 'f'},
+			{"mls",    ARG_REQ, 0 , 'm'},
+			{"dataType",    ARG_REQ, 0 , 't'},
+			{"frag",    ARG_REQ, 0 , 'F'},
+			{"dim",    ARG_REQ, 0 , 'd'},
+			{"seta",    ARG_REQ, 0 , 'A'},
+			{"setn",    ARG_REQ, 0 , 'N'},
+			{"IndexFileName",    ARG_REQ, 0 , 'o'},
+			{"initialSize",    ARG_REQ, 0 , 'i'},
+			{"finalSize",    ARG_REQ, 0 , 'a'},
+			{"stepSize",    ARG_REQ, 0 , 's'},
+			{"indexType",    ARG_REQ, 0 , 'l'},//0504
+			{"cImageNum",    ARG_REQ, 0 , 'I'},//0504
+			{"feasNum",    ARG_REQ, 0 , 'E'},//0504
+			{"frag",    ARG_REQ, 0 , 'B'},//0504
 
 
 
-			{ no_argument , no_argument , no_argument , no_argument }
+			{ ARG_NULL , ARG_NULL , ARG_NULL , ARG_NULL }
 		};
 		
 		int option_index = 0;
-		c = getopt_long(argc, argv, ("n:p:v:M:S:m:x:t:f:d:A:N:o:i:a:s:l:I:E:B:"), long_options, &option_index);
+		c = getopt_long_a(argc, argv, ("n:p:v:M:S:m:x:t:f:d:A:N:o:i:a:s:l:I:E:B:"), long_options, &option_index);
 		
 		// Check for end of operation or error
 		if (c == -1)
@@ -336,108 +347,108 @@ int main(int argc, char** argv)
 			if (long_options[option_index].flag != 0)
 				break;
 			printf (("option %s"), long_options[option_index].name);
-			if (optarg)
-				printf ((" with arg %s"), optarg);
+			if (optarg_a)
+				printf ((" with arg %s"), optarg_a);
 			printf (("\n"));
 			break;
 			
 		case ('n'):	
-			dataFileName = new char[strlen(optarg)+1];
-			strcpy(dataFileName,optarg);
+			dataFileName = new char[strlen(optarg_a)+1];
+			strcpy(dataFileName,optarg_a);
 			printf (("option -dataFileName with value `%s'\n"), dataFileName);
 			break;
 
         case ('B'):	
-			fragmentLength = stringToNumber<int>(optarg);
+			fragmentLength = stringToNumber<int>(optarg_a);
 			printf (("option -fragmentLength with value `%s'\n"), fragmentLength);
 			break;
 
 		case ('p'):	
-			pivotSelectionMethod = new char[strlen(optarg)+1];
-			strcpy(pivotSelectionMethod,optarg);
+			pivotSelectionMethod = new char[strlen(optarg_a)+1];
+			strcpy(pivotSelectionMethod,optarg_a);
 			printf (("option -pivotSelectionMethod with value `%s'\n"), pivotSelectionMethod);
 			break;
 
 		case ('v'):	
-			numPivot=stringToNumber<int>(optarg);
+			numPivot=stringToNumber<int>(optarg_a);
 			printf (("option -numPivot with value `%d'\n"), numPivot);
 			break;
 
 		case ('M'):	
-			partitionMethod = new char[strlen(optarg)+1];
-			strcpy(partitionMethod,optarg);
+			partitionMethod = new char[strlen(optarg_a)+1];
+			strcpy(partitionMethod,optarg_a);
 			printf (("option -partitionMethod with value `%s'\n"), partitionMethod);
 			break;
 
 		case ('f'):	
-			singlePivotFanout=stringToNumber<int>(optarg);
+			singlePivotFanout=stringToNumber<int>(optarg_a);
 			printf (("option -singlePivotFanout with value `%d'\n"), singlePivotFanout);
 			break;
 
 		case ('m'):	
-			maxLeafSize=stringToNumber<int>(optarg);
+			maxLeafSize=stringToNumber<int>(optarg_a);
 			printf (("option -maxLeafSize with value `%d'\n"), maxLeafSize);
 			break;
 
 		case ('t'):	
-			dataType = new char[strlen(optarg)+1];
-			strcpy(dataType,optarg);
+			dataType = new char[strlen(optarg_a)+1];
+			strcpy(dataType,optarg_a);
 			printf (("option -dataType with value `%s'\n"), dataType);
 			break;
 
 		case ('F'):	
-			frag = stringToNumber<int>(optarg);
+			frag = stringToNumber<int>(optarg_a);
 			printf (("option -frag with value `%d'\n"), frag);
 			break;
 
 		case ('d'):	
-			dim=stringToNumber<int>(optarg);
+			dim=stringToNumber<int>(optarg_a);
 			printf (("option -dim with value `%d'\n"), dim);
 			break;
 
 		case ('A'):	
-			setA = stringToNumber<int>(optarg);
+			setA = stringToNumber<int>(optarg_a);
 			printf (("option -setA with value `%d'\n"), setA);
 			break;
 
 		case ('N'):	
-			setN = stringToNumber<int>(optarg);
+			setN = stringToNumber<int>(optarg_a);
 			printf (("option -setN with value `%d'\n"), setN);
 			break;
 
 		case ('o'):	
-			IndexFileName = new char[strlen(optarg)+1];
-			strcpy(IndexFileName,optarg);
+			IndexFileName = new char[strlen(optarg_a)+1];
+			strcpy(IndexFileName,optarg_a);
 			printf (("option -IndexFileName with value `%s'\n"), IndexFileName);
 			break;
 
 		case ('i'):	
-			initialSize = stringToNumber<int>(optarg);
+			initialSize = stringToNumber<int>(optarg_a);
 			printf (("option -initialSize with value `%d'\n"), initialSize);
 			break;
 
 		case ('a'):	
-			finalSize = stringToNumber<int>(optarg);
+			finalSize = stringToNumber<int>(optarg_a);
 			printf (("option -finalSize with value `%d'\n"), finalSize);
 			break;
 
 		case ('s'):	
-			stepSize = stringToNumber<int>(optarg);
+			stepSize = stringToNumber<int>(optarg_a);
 			printf (("option -stepSize with value `%d'\n"), stepSize);
 			break;
 
 		case ('l'):	
-			indexType = new char[strlen(optarg)+1];
-			strcpy(indexType,optarg);
+			indexType = new char[strlen(optarg_a)+1];
+			strcpy(indexType,optarg_a);
 			printf (("option -listType with value `%s'\n"), indexType);
 			break;
 
 	    case ('I'):	
-			cImageNum=stringToNumber<int>(optarg);
+			cImageNum=stringToNumber<int>(optarg_a);
 			printf (("option -cImage_Num with value `%d'\n"), cImageNum);
 			break;
 		case ('E'):	
-			feasNum=stringToNumber<int>(optarg);
+			feasNum=stringToNumber<int>(optarg_a);
 			printf (("option -feas_Num with value `%d'\n"), feasNum);
 			break;
 
