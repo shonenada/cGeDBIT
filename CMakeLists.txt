@@ -15,7 +15,8 @@ configure_file(data/rawdata.txt
 # Include head files in cGeDBIT
 include_directories(src/HeaderFiles/index src/HeaderFiles/indexalgorithm
                     src/HeaderFiles/metric src/HeaderFiles/objects
-                    src/HeaderFiles/query)
+                    src/HeaderFiles/query src/HeaderFiles/util
+                    src/HeaderFiles/type)
 
 # Add index library in cGeDBIT
 add_library(cGeDBIT_indexs
@@ -64,10 +65,11 @@ add_library(cGeDBIT_querys
 
 # Add util library cGeDBIT
 add_library(cGeDBIT_utils
-            src/SourceFiles/util/getopt.cpp)
+            src/SourceFiles/util/getopt.cpp
+            src/SourceFiles/util/getopt_win.cpp)
 
 
-find_package (Boost 1.53 COMPONENTS)
+find_package (Boost 1.53 COMPONENTS serialization REQUIRED)
 if (Boost_FOUND)
     include_directories (${Boost_INCLUDE_DIRS})
     add_executable(cGeDBIT src/app/BuildIndex.cpp)
