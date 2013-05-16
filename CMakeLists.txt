@@ -67,7 +67,7 @@ add_library(cGeDBIT_utils
             src/SourceFiles/util/getopt.cpp)
 
 
-find_package (Boost 1.53 COMPONENTS)
+find_package (Boost 1.53 COMPONENTS serialization REQUIRED)
 if (Boost_FOUND)
     include_directories (${Boost_INCLUDE_DIRS})
     add_executable(cGeDBIT src/app/BuildIndex.cpp)
