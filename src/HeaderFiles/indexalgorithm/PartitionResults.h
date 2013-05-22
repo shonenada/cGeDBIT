@@ -4,13 +4,18 @@
 #include "../objects/IndexObject.h"
 #include "../index/IndexNode.h"
 #include <boost/serialization/vector.hpp>
-
-/**@defgroup PARTITIONRESULTS SQAI:PARTITIONRESULTS
+/** @file PartitionResults.h
+ * @classes about index algrithm used in the process of building a index structure
  * @author Fuli Lei
- * @version 2013-4-18
- * @{
- */
-/*this class is used to package the partition results of the function partition in class CPartitionMethod so that we can use all the results packaged to create an internal node*/
+ * @version 2012-12-09
+*/
+
+/**
+* @class CPartitionResults
+* @abstract class about partition methods
+* @author Fuli Lei
+* this class is used to package the partition results of the function partition in class CPartitionMethod so that we can use all the results packaged to create an internal node
+*/
 class CPartitionResults
 {
 public:
@@ -37,17 +42,17 @@ public:
 	*/
 	int partitionSize();
 
-	/*
+	/*return the partition results information to the caller of this funciton
 		@return: return the start address of an partition base on the given partition index 
 	*/
 	int getPartition(int partitionIndex);
 
-	/*
+	/*return the value of bound distance value of sub partitions
 		@return: return a distance value container
 	*/
 	vector<vector<double> >& getLowerBounds();
 
-	/*
+	/*return the value of bound distance value of sub partitions
 		@return: return a distance value container
 	*/
 	vector<vector<double> >& getUpperBounds();
@@ -63,5 +68,5 @@ private:
 	vector<vector<double> > upperBounds;
 
 };
-/**@}*/
+
 #endif

@@ -8,13 +8,19 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/vector.hpp>
 
-/**@defgroup LISTINDEX SQAI:LISTINDEX
- * @author
- * @version 2013-4-18
- * @{
- */
+/** @file ListIndex.h
+ * @classes about index
+ * @author Fuli Lei
+ * @version 2012-12-09
+*/
 
-/**A liner index structure can be built through this class and then write structure into the file stored in the external memory*/
+/**
+* @class CListIndex
+* @class about list index whose data structure likes a liner array
+* @author Fuli Lei
+* A liner index structure can be built through this class and then write structure into the file stored in the external memory
+*/
+
 class CListIndex :
     public CIndex
 {
@@ -84,5 +90,5 @@ private:
     CMetric *metric;
 
 };
-/**@}*/
+
 #endif

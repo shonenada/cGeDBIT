@@ -4,16 +4,19 @@
 #include "IndexNode.h"
 
 #include <boost/serialization/base_object.hpp>
-
-/**@defgroup MVPLEAFNODE SQAI:MVPLEAFNODE
+/** @file MVPLeafNode.h
+ * @classes about index structure
  * @author Fuli Lei
- * @version 2013-4-16
- * @{
+ * @version 2012-12-09
  */
 
-/*
- *this class packages the basic information of an leaf node of mvp-tree.
- */
+ /**
+* @class CMVPLeafNode
+* @class about leaf nodes in index structure
+* @author Fuli Lei
+* this class packages the basic information of an leaf node of mvp-tree.
+*/
+
 class CMVPLeafNode:public CIndexNode
 {
 public:
@@ -67,5 +70,4 @@ private:
 	vector<vector<double>> distance;
 };
 
-/**@}*/
 #endif

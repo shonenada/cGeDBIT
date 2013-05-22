@@ -14,13 +14,17 @@
 
 class Task;
 
-/**@defgroup MVPINDEX SQAI:MVPINDEX
-* @author Fuli Lei, Qiaozhi Li, Yuxuan Qiu, Yaoda Liu
-* @version 2013-4-18
-*
+/** @file MVPIndex.h
+ * @classes about mvp tree index structure
+ * @author Fuli Lei
+ * @version 2012-12-09
 */
+
 /**
-this class is to build a mvp-tree and give out a search method, users can use the given search method to find out what they want quickly from the mvp-tree
+* @class CMVPIndex
+* @abstract class about index structure
+* @author Fuli Lei, Qiaozhi Li, Yuxuan Qiu, Yaoda Liu
+* this class is to build a mvp-tree and give out a search method, users can use the given search method to find out what they want quickly from the mvp-tree
 */
 class CMVPIndex:public CIndex
 {

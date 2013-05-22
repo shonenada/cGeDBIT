@@ -7,13 +7,19 @@
 
 #include <boost/serialization/vector.hpp>
 
-/**@defgroup INDEXNODE SQAI:INDEX
+/** @file IndexNode.h
+ * @classes about index
  * @author Fuli Lei
- * @version 2013-4-14
- * @{
+ * @version 2012-12-09
  */
 
-/**this is a abstract base class which include all the base information of a node in the index, all the derived class of this class will inherite the information descriped in the class*/
+/**
+* @class CIndex
+* @abstract class about nodes in index structure
+* @author Fuli Lei
+* this is a abstract base class which include all the base information of a node in the index, all the derived class of this class will inherite the information descriped in the class
+*/
+
 class CIndexNode
 {
 public:
@@ -25,8 +31,8 @@ public:
 	/**constructor with one parameter pivots. 
 		this constructor will be called to create an instance of class CIndexNode
 
-		@para pivots a vector include all the address of pivots belong to single node in the index structor
-		@para height the height of current node
+		@param pivots a vector include all the address of pivots belong to single node in the index structor
+		@param height the height of current node
 	*/
 	CIndexNode(vector<CIndexObject*> pivots, int height);
 
@@ -36,7 +42,7 @@ public:
 	~CIndexNode();
 
 	/** get the address of a pivot based on the pivot index in the parameter list
-		@para pivot pivot index of a pivot in the pivot address vector in the node
+		@param pivot pivot index of a pivot in the pivot address vector in the node
 		@return a pivot address in the main memory
 	*/
 	CIndexObject* getPivot(int pivotIndex);
@@ -52,7 +58,7 @@ public:
 	virtual int numChildren()=0;
 
 	/**set the height of this node
-	   @para degree the value of height of this node
+	   @param degree the value of height of this node
 	*/
 	void setHeight(int degree);
 
@@ -62,8 +68,8 @@ public:
 	int getHeight();
 
 	/**this is function will be called when traversal from the root to the leaf doing the search operation
-		@para q this object package an some information used to do the search
-		@para metric one can get the distance of two objects through the member function of this parameter
+		@param q this object package an some information used to do the search
+		@param metric one can get the distance of two objects through the member function of this parameter
 		@raturn return a vector containing all the proper objects in this node 
 	*/
 	virtual vector<CIndexObject*>  search(CRangeQuery &q,CMetric &metric)=0;
@@ -88,5 +94,5 @@ private:
 	int height;
 
 };
-/**@}*/
+
 #endif

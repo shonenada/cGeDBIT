@@ -5,14 +5,19 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
-
-/** @defgroup EUCLIDEANDISTANCE SQAI:EUCLIDEANDISTANCE
-*  @author Fuli Lei
-*  @version 2012-12-09
-*  @{
+/** @file EuclideanDistance.h
+ * @classes about metirc methods
+ * @author Fuli Lei
+ * @version 2012-12-09
 */
 
-/** this class will generate the distance of two object*/
+/**
+* @class CEuclideanDistance
+* @abstract class about metric methods
+* @author Fuli Lei
+* this class will generate the distance of two object
+*/
+
 class CEuclideanDistance :
 	public CMetric
 {

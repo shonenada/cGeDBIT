@@ -4,19 +4,22 @@
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
+/** @file Metric.h
+ * @classes about metirc methods
+ * @author Fuli Lei
+ * @version 2012-12-09
+*/
 
 
+/**
+* @class CMetric
+* @this is a class type.
+* @abstract class about methic methods
+* @author Fuli Lei
+* class name is CMetric, this class descripe the
+* basic information of how to get the distance of two object
+*/
 
-/** @defgroup METRIC SQAI:METRIC
- *	@author  Fuli Lei
- *  @version 2012-12-16
- *  @{
- */
-
-/** this is a class type.
- *	class name is CMetric, this class descripe the
- *  basic information of how to get the distance of two object
- */
 class CMetric
 {
 public:
@@ -48,8 +51,5 @@ private:
 		/** @}*/
 		/** @}*/
 };
-
-
-/** @}*/
 
 #endif

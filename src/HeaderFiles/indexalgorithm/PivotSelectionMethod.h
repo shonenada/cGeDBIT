@@ -5,15 +5,18 @@
 #include <vector>
 
 #include <boost/serialization/vector.hpp>
+/** @file PivotSelectionMethod.h
+ * @classes about index algrithm used in the process of building a index structure
+ * @author Fuli Lei,Yuxuan Qiu
+ * @version 2012-12-09
+*/
 
-/**@defgroup PIVOTSELECTIONMETHOD SQAI:PIVOTSELECTIONMETHOD
- * @author Fuli lei, Yuxuan Qiu
- * @version 2013-4-18
- * @{
- */
-/*
-	select some data objects from the given data set as the pivots, which will be used in the process of search to exclude some part of the data objects so that we can
-	what we want with fewer distance calculations
+/**
+* @class CPivotSelectionMethod
+* @abstract class about pivot selection methods
+* @author Fuli Lei,Yuxuan Qiu
+* select some data objects from the given data set as the pivots, which will be used in the process of search to exclude some part of the data objects so that we can
+* what we want with fewer distance calculations
 */
 
 class CPivotSelectionMethod
@@ -49,5 +52,5 @@ private:
     {
 	}
 };
-/**@}*/
+
 #endif

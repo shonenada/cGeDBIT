@@ -4,16 +4,18 @@
 #include "IndexNode.h"
 
 #include <boost/serialization/base_object.hpp>
-
-/**@defgroup MVPINTERNALNODE SQAI:MVPINTERNALNODE
+/** @file MVPInternalNode.h
+ * @classes about index structure
  * @author Fuli Lei
- * @version 2013-4-16
- * @{
+ * @version 2012-12-09
  */
 
-/*
- *this class packages the basic information of an internal node of mvp-tree.
- */
+/**
+* @class CMVPinternalNode
+* @class about internal nodes in index structure
+* @author Fuli Lei
+* this class packages the basic information of an internal node of mvp-tree.
+*/
 class CMVPInternalNode:public CIndexNode
 {
 public:
@@ -87,5 +89,4 @@ private:
 	vector<vector<double>> lower;
 
 };
-/**@}*/
 #endif

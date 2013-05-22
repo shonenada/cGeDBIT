@@ -39,7 +39,8 @@ EXPRESSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 #include "../HeaderFiles/metric/EditDistance.h"
 #include "../HeaderFiles/metric/ImageMetric.h"
 #include "../HeaderFiles/metric/MSMSMetric.h"
-#include "../HeaderFiles/metric/RNAMetric.h"//#include "../HeaderFiles/metric/PeptideMetric.h"
+#include "../HeaderFiles/metric/RNAMetric.h"
+//#include "../HeaderFiles/metric/PeptideMetric.h"
 
 #if defined(_MSC_VER)
 #include "../HeaderFiles/util/getopt_win.h"
@@ -146,12 +147,12 @@ void batchBulkLoad(char *&dataFileName,char *&IndexFileName,char *&pivotSelectio
 
 	
 
-	ofstream ofs(IndexFileName);
+	/*ofstream ofs(IndexFileName);
 	boost::archive::text_oarchive oa(ofs);
 	lt->write(oa);
 	
 	ofs.close();
-	ofs.clear();
+	ofs.clear();*/
 
 	/*CMVPIndex *mvpIndexx=new CMVPIndex;
 	
@@ -162,16 +163,17 @@ void batchBulkLoad(char *&dataFileName,char *&IndexFileName,char *&pivotSelectio
 	ifs.close();
 	ifs.clear();*/
 
-	double d[1]={50};
-	int dim=1;
+	double d[5]={20,20,20,20,20};
+	int dim=5;
 	CDoubleVector *cd=new CDoubleVector(d,dim);
 
-	double radius=10;
+	double radius=20;
 
 	CRangeQuery *q=new CRangeQuery(radius,cd);
 
+    ofstream of("./data/resultstatistic.txt");
 	vector<CIndexObject*> ve=lt->search(q);
-	cout<<"result size:"<<ve.size()<<endl;
+    of<<"result size:"<<ve.size()<<endl;
 	for(vector<CIndexObject*>::iterator it=ve.begin();it!=ve.end();it++)
 	{
 		CDoubleVector *cd=(CDoubleVector*)(*it);
@@ -179,11 +181,11 @@ void batchBulkLoad(char *&dataFileName,char *&IndexFileName,char *&pivotSelectio
 		for(int j=0;j<cd->getLen();j++)
 		{
 			if(j==0)
-				cout<<"(";
+				of<<"(";
 			if(j!=(cd->getLen()-1))
-				cout<<cd->getData()[j]<<",";
+				of<<cd->getData()[j]<<",";
 			else
-				cout<<cd->getData()[j]<<")"<<endl;
+				of<<cd->getData()[j]<<")"<<endl;
 		}
 	}
 
@@ -323,8 +325,8 @@ int main(int argc, char** argv)
 			{"finalSize",    ARG_REQ, 0 , 'a'},
 			{"stepSize",    ARG_REQ, 0 , 's'},
 			{"indexType",    ARG_REQ, 0 , 'l'},//0504
-			{"cImageNum",    ARG_REQ, 0 , 'I'},//0504
-			{"feasNum",    ARG_REQ, 0 , 'E'},//0504
+			{"imagenum",    ARG_REQ, 0 , 'I'},//0504
+			{"feasnum",    ARG_REQ, 0 , 'E'},//0504
 			{"frag",    ARG_REQ, 0 , 'B'},//0504
 
 
