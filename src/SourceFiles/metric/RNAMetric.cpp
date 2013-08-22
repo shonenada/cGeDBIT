@@ -1,8 +1,7 @@
 #include "../../HeaderFiles/metric/RNAMetric.h"
 
-/** @addtogroup CRNAMetric
- *  @{
- * This class define a metric to compute distance of two RNA sequence.
+/** 
+ * @brief This class define a metric to compute distance of two RNA sequence.
  */
 
 /** A edit distance matrix of each two rna symbols. */
@@ -25,21 +24,24 @@ double CRNAMetric::EditDistanceMatrix[RNASYMBOLNUMBER][RNASYMBOLNUMBER] =
     {0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,  0}  // N Anybase (A,C,G,T,or U) 
 };
 
-/** A no parameter constructor, do nothing */
+/**
+ * @brief A no parameter constructor, do nothing.
+ */
 CRNAMetric::CRNAMetric()
 {
 
 }
 
-/** A destructor, do nothing */
+/** 
+ * @brief A destructor, do nothing
+ */
 CRNAMetric::~CRNAMetric()
 {
 
 }
 
 /**
- * @override
- * This method return two IndexObjects' distance.
+ * @brief This method return two IndexObjects' distance.
  */
 double CRNAMetric::getDistance(CIndexObject* one, CIndexObject* two)
 {
@@ -49,8 +51,8 @@ double CRNAMetric::getDistance(CIndexObject* one, CIndexObject* two)
 }
 
 /**
- * This method return two RNA' distance.
- *  - Sum up edit distance of two RNA.
+ * @brief This method return two RNA' distance.
+ *        Sum up edit distance of two RNA.
  */
 double CRNAMetric::getDistance(CRNA* one, CRNA* two)
 {
@@ -69,7 +71,3 @@ double CRNAMetric::getDistance(CRNA* one, CRNA* two)
 	}
 	return dist;
 }
-
-/**
- * @}  //CRNAMetric
-*/

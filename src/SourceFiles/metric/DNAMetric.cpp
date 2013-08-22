@@ -1,7 +1,6 @@
 #include "../../HeaderFiles/metric/DNAMetric.h"
 
-/** @addtogroup CDNAMetric
- *  @{
+/**
  * This class define a metric to compute distance of two DNA sequence.
  */
 
@@ -38,8 +37,8 @@ CDNAMetric::~CDNAMetric()
 }
 
 /**
- * @override
- * This method return two IndexObjects' distance.
+ * @brief This method return two IndexObjects' distance.
+ * @return  Return a double type distance of two objects.
  */
 double CDNAMetric::getDistance(CIndexObject* one, CIndexObject* two)
 {
@@ -49,8 +48,9 @@ double CDNAMetric::getDistance(CIndexObject* one, CIndexObject* two)
 }
 
 /**
- * This method return two DNA' distance.
- *  - Sum up edit distance of two DNA.
+ * @brief   This method return two DNA' distance.
+ *          Sum up edit distance of two DNA.
+ * @return  Return a double type distance of two objects.
  */
 double CDNAMetric::getDistance(CDNA* one, CDNA* two)
 {
@@ -69,7 +69,3 @@ double CDNAMetric::getDistance(CDNA* one, CDNA* two)
 	}
 	return dist;
 }
-
-/**
- * @}  //CDNAMetric
-*/
