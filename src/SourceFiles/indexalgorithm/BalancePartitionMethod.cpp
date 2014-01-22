@@ -395,7 +395,7 @@ CPartitionResults CBalancePartitionMethod::partition(CMetric *metric, const vect
 				if(clusterOffset[i] < clusterOffset[i + 1])
 				{
 					newLower[vectorIndex][j] = lower[vectorIndex][i];
-					newUpper[vectorIndex][j] = lower[vectorIndex][i];
+					newUpper[vectorIndex][j] = upper[vectorIndex][i];
 					newOffset[j] = clusterOffset[i];
 					j++;
 				}

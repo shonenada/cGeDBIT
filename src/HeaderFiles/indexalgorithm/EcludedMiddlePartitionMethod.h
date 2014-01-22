@@ -14,12 +14,12 @@
 */
 
 
-class CEcludedMiddlePartitionMethod :
+class CExcludedMiddlePartitionMethod :
     public CPartitionMethod
 {
 public:
-    CEcludedMiddlePartitionMethod(void);
-    ~CEcludedMiddlePartitionMethod(void);
+    CExcludedMiddlePartitionMethod(void);
+    ~CExcludedMiddlePartitionMethod(void);
 
     /**
     * @brief divide dataset into three partitions base on maxRadius and middleProportion
@@ -36,10 +36,12 @@ public:
     * @note
     *
     */
-    CPartitionResults partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data,int first,int size,double maxRadius,int numPartitions,int maxLeafSize,double middleProportion);
+   
+
+    virtual CPartitionResults partition(CMetric *metric, const vector<shared_ptr<CIndexObject> > &pivots,vector<shared_ptr<CIndexObject> > &data,int first,int size,double maxRadius,int numPartitions,int maxLeafSize,double middleProportion);
 
 
-    CPartitionResults partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data, int first, int size, int numPartitions, int maxLeafSize);
+    virtual CPartitionResults partition(CMetric *metric, const vector<shared_ptr<CIndexObject> > &pivots,vector<shared_ptr<CIndexObject> > &data,int first,int size,int numPartitions,int maxLeafSize);
 
 
 
@@ -49,5 +51,12 @@ public:
     int getMin(vector<double> &distance,int begin,int end);
     int getMax(vector<double> &distance,int begin,int end);
 
-};
+    void setMaxRadius(double radius);
+    void setMiddleProportion(double middleProportion);
 
+private:
+
+    double settedRadius;
+    double settedMiddleProportion;
+}
+;

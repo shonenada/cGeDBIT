@@ -2,7 +2,7 @@
 
 
 
-void extract(vector<CIndexObject*> &data,vector<double> &distance,vector<int> &offsets,int start,int target,int first)
+void extract(vector<shared_ptr<CIndexObject> > &data,vector<double> &distance,vector<int> &offsets,int start,int target,int first)
 {
     CIndexObject* tempObject;
     double tempd;
@@ -19,16 +19,16 @@ void extract(vector<CIndexObject*> &data,vector<double> &distance,vector<int> &o
 /*==============================================================================================================================*/
 
 
-CEcludedMiddlePartitionMethod::CEcludedMiddlePartitionMethod(void)
+CExcludedMiddlePartitionMethod::CEcludedMiddlePartitionMethod(void)
 {
 }
 
 
-CEcludedMiddlePartitionMethod::~CEcludedMiddlePartitionMethod(void)
+CExcludedMiddlePartitionMethod::~CEcludedMiddlePartitionMethod(void)
 {
 }
 
-CPartitionResults CEcludedMiddlePartitionMethod::partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data,int first,int size,double maxRadius,int numPartitions,int maxLeafSize,double middleProportion)
+CPartitionResults CExcludedMiddlePartitionMethod::partition(CMetric *metric, const vector<shared_ptr<CIndexObject> > &pivots,vector<shared_ptr<CIndexObject> > &data,int first,int size,double maxRadius,int numPartitions,int maxLeafSize,double middleProportion)
 {
 
     int i,j,k;
@@ -49,7 +49,7 @@ CPartitionResults CEcludedMiddlePartitionMethod::partition(CMetric *metric, cons
 
     for(int i=first; i<first+size; i++)
     {
-        distance[i-first]= metric->getDistance(pivots.at(0),data.at(i));
+        distance[i-first]= metric->getDistance(pivots.at(0).get(),data.at(i).get());
 
         //tempPair = new CDoubleIndexObjectPair(metric->getDistance(pivots.at(0),data.at(i)),data[i]);
         //wrapper.push_back(tempPair);
@@ -256,7 +256,7 @@ CPartitionResults CEcludedMiddlePartitionMethod::partition(CMetric *metric, cons
     return CPartitionResults(offsets,lowerBounds,upperBounds);
 }
 
-int CEcludedMiddlePartitionMethod::getMin(vector<double> &distance,int begin,int end)
+int CExcludedMiddlePartitionMethod::getMin(vector<double> &distance,int begin,int end)
 {
     if(end<begin||begin>=distance.size())
         return -1;
@@ -279,7 +279,7 @@ int CEcludedMiddlePartitionMethod::getMin(vector<double> &distance,int begin,int
     return minIndex;
 }
 
-int CEcludedMiddlePartitionMethod::getMax(vector<double> &distance,int begin,int end)
+int CExcludedMiddlePartitionMethod::getMax(vector<double> &distance,int begin,int end)
 {
    if(end<begin||begin>=distance.size())
         return -1;
@@ -302,7 +302,7 @@ int CEcludedMiddlePartitionMethod::getMax(vector<double> &distance,int begin,int
     return maxIndex;
 }
 
-double CEcludedMiddlePartitionMethod::getMid(vector<double> distance)
+double CExcludedMiddlePartitionMethod::getMid(vector<double> distance)
 {
     nth_element(distance.begin(),distance.begin()+distance.size()/2,distance.end());
     return distance.at(distance.size()/2);
@@ -311,7 +311,7 @@ double CEcludedMiddlePartitionMethod::getMid(vector<double> distance)
 
 }
 
-CPartitionResults CEcludedMiddlePartitionMethod:: partition(CMetric *metric, const vector<CIndexObject*> &pivots,vector<CIndexObject*> &data, int first, int size, int numPartitions, int maxLeafSize)
+CPartitionResults CExcludedMiddlePartitionMethod:: partition(CMetric *metric, const vector<shared_ptr<CIndexObject> > &pivots,vector<shared_ptr<CIndexObject> > &data, int first, int size, int numPartitions, int maxLeafSize)
 {
 
     return partition(metric, pivots,data, first,size,5/*maxR*/,numPartitions,maxLeafSize,0.3 /*middleProportion*/);

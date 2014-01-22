@@ -48,6 +48,7 @@ public:
 	*/
      virtual CPartitionResults partition(CMetric *metric, const vector<shared_ptr<CIndexObject> > &pivots,vector<shared_ptr<CIndexObject> > &data,int first,int size,double maxRadius,int numPartitions,int maxLeafSize,double middleProportion)=0;
 	
+    
 };
 
 /**@}*/
