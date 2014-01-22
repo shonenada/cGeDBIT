@@ -1,4 +1,9 @@
 #include "../../HeaderFiles/metric/Metric.h"
+/** @file Metric.cpp
+ * @classes about metirc methods
+ * @author Fuli Lei
+ * @version 2012-12-09
+*/
 
 /** no parameter constructor function*/
 CMetric::CMetric()
@@ -9,4 +14,7 @@ CMetric::CMetric()
  */
 CMetric::~CMetric()
 {
+	//cout<<"the metric will be deleted!"<<endl;
+
+	
 }

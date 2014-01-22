@@ -2,34 +2,37 @@
 #define METRIC_H
 #include "../objects/IndexObject.h"
 
-/** @defgroup METRIC SQAI:METRIC
- *	@author  Fuli Lei
- *  @version 2012-12-16
- *  @{
- */
+/** @file Metric.h
+ * @classes about metirc methods
+ * @author Fuli Lei
+ * @version 2012-12-09
+*/
 
-/** this is a class type.
- *	class name is CMetric, this class descripe the
- *  basic information of how to get the distance of two object
- */
+
+/**
+* @class CMetric
+* @brief abstract class about methic methods
+* @author Fuli Lei
+* @version 2013526
+*
+* class name is CMetric, this class descripe the
+* basic information of how to get the distance of two object
+*/
+
 class CMetric
 {
 public:
-	    /** no parameter constructor function*/
+	    /**@brief no parameter constructor function*/
         CMetric();
-		/** destructor function of this class type for releasing the
-		 *  internal memory space which allocated dynamically
+		/**@brief destructor function of this class type for releasing the internal memory space which allocated dynamically
 		 */
-        ~CMetric();
+		~CMetric();
 
-		/** compute the distance of two given CIndexObject(or it's subclass) objects*/
+		/**@brief compute the distance of two given CIndexObject(or it's subclass) objects
+            @return return the distance of to objects.
+        */
         virtual double getDistance(CIndexObject*,CIndexObject*)=0;
 
-private:
-
 };
-
-
-/** @}*/
 
 #endif
