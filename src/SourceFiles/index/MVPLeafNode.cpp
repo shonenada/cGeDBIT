@@ -489,3 +489,96 @@ void CMVPLeafNode::searchExternal(CRangeQuery &q,long filePointer,ifstream &in,C
 
     //showMemoryInfo3("testLeaf","searchEnd");
 }
+
+void CMVPLeafNode::SMTSearchExternal(CRangeQuery &q,long filePointer,ifstream &in,CMetric &metric,vector<shared_ptr<CIndexObject> > *&rs,deque<long> &childrenAddress,string &dataType,mutex &mux,mutex &r_mutex)
+{
+
+	mux.lock();
+    in.seekg(filePointer,ios::beg);
+
+    this->readExternal(in,dataType);
+	mux.unlock();
+
+    int numpivots = pivots.size();
+
+    int i,j,p=-1;
+    double* tempd = new double[numpivots];
+    double r = q.getRadius();
+    bool shouldBeSearched = true;
+
+    for(i=0;i<numpivots;i++)
+    {
+        tempd[i] = metric.getDistance(pivots[i].get(),q.getQueryObject().get());
+        if (tempd[i]<=r)
+        {
+			r_mutex.lock();
+            rs->push_back(pivots.at(i));
+			r_mutex.unlock();
+            if (tempd[i]==0)
+                p = i;
+        }
+        /*else
+        {
+        pivots[i].reset();
+        }*/
+
+    }
+
+    if (p>=0&&tempd[p]==0)
+    {
+        for(j=0;j<dataObjects.size();j++)
+        {
+            if(distance.at(p).at(j)<=r)
+			{
+				r_mutex.lock();
+                rs->push_back(dataObjects.at(j));
+				r_mutex.unlock();
+			}
+			/* else
+            dataObjects.at(j).reset();*/
+        }
+        CMemMonitor::updateMem();
+        delete(tempd);
+        return;
+    }
+
+    for(i=0;i<dataObjects.size();i++)
+    {			
+        for(j=0;j<numpivots;j++)
+        {           
+
+            if(abs(tempd[j]-distance.at(j).at(i))>r)
+            {
+                shouldBeSearched = false;                
+                //dataObjects.at(i).reset();
+
+                break;
+            }
+
+
+        }
+
+        if(shouldBeSearched)
+        {
+            if(metric.getDistance(dataObjects.at(i).get(),q.getQueryObject().get())<=r)
+            {
+				r_mutex.lock();
+                rs->push_back(dataObjects.at(i));
+				r_mutex.unlock();
+            }
+            /* else
+            {
+            dataObjects.at(i).reset();
+            }*/
+
+        }
+
+        shouldBeSearched = true;
+
+    }
+    //showMemoryInfo3("testLeafSearchExternal");
+    CMemMonitor::updateMem();
+    delete(tempd);
+
+    //showMemoryInfo3("testLeaf","searchEnd");
+}

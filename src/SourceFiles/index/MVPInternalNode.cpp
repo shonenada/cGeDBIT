@@ -35,6 +35,8 @@ void showMemoryInfo2(char * resultsFileName,char* type)
 /**none parameter constructor*/
 CMVPInternalNode::CMVPInternalNode()
 {
+	this->childSize=0;
+	this->childAddress=0;
     /*pivots.clear();*/
 }
 
@@ -47,12 +49,14 @@ CMVPInternalNode::CMVPInternalNode()
 */
 CMVPInternalNode::CMVPInternalNode(vector<shared_ptr<CIndexObject> > pivots,vector<vector<double> > lower,vector<vector<double> > upper,vector<shared_ptr<CIndexNode> > child,int myHeight):CIndexNode(pivots,myHeight)
 {
-
+	
     this->child=child;
 
     this->upper=upper;
     this->lower=lower;
 
+	this->childSize=0;
+	this->childAddress=0;
 }
 
 /**destructor*/
@@ -380,11 +384,17 @@ long CMVPInternalNode::getSubTreeRootAddress(int subTreeIndex)
 
 void CMVPInternalNode::setChildSize(int size)
 {
-    if(childSize<0)
+
+    if(childSize<=0)
     {
-        childSize = size;
+		childSize = size;
         childAddress = new long[size];
     }
+}
+
+int CMVPInternalNode::getChildeSize()
+{
+	return childSize;
 }
 
 void CMVPInternalNode::searchIndex(CRangeQuery &q,long filePointer,ifstream &in,CMetric& metric,vector<shared_ptr<CIndexObject> > &rs,string &dataType)
@@ -554,6 +564,87 @@ void CMVPInternalNode::searchExternal(CRangeQuery &q,long filePointer,ifstream &
 
     CMemMonitor::updateMem();
     delete(tempd);
+
+    //showMemoryInfo2("testInternal.txt","searchEnd");
+}
+
+void CMVPInternalNode::SMTSearchExternal(CRangeQuery &q,long filePointer,ifstream &in,CMetric &metric,vector<shared_ptr<CIndexObject> > *&rs,deque<long> &childrenAddress,string &dataType,mutex &mux,mutex &r_mutex)
+{
+	mux.lock();
+    //showMemoryInfo2("testInternal.txt","searchBegin");
+    in.seekg(filePointer,ios::beg);
+
+    this->readExternal(in,dataType);
+	mux.unlock();
+
+    int numpivot = pivots.size();
+
+    double r=q.getRadius();
+
+    double* tempd=new double[numpivot];
+
+    bool shouldBeSearched = true;
+
+
+
+
+    int i,j;
+
+
+    for(i=0;i<pivots.size();i++)
+    {
+        tempd[i] = metric.getDistance(q.getQueryObject().get(),CIndexNode::getPivot(i).get());
+        //tempd[i]: the distance between query and pivot[i]
+        if(tempd[i]<=r)
+        {
+			r_mutex.lock();
+            rs->push_back(pivots[i]);
+			r_mutex.unlock();
+        }
+        else
+        {
+            //pivots[i].reset();
+        }
+
+    }
+
+
+
+
+    for(j=0;j<childSize;j++)
+    {
+
+        shouldBeSearched = true;
+
+        for(i=0;i<numpivot;i++)
+        {
+
+            if((tempd[i]+r)<lower.at(i).at(j)||(tempd[i]-r)>upper.at(i).at(j))
+            {
+
+
+                if((tempd[i]+upper.at(i).at(j))<=r)
+                {
+                    shouldBeSearched=true;
+                    break;
+                }
+                else
+                {
+                    shouldBeSearched = false;
+                    break;
+                }
+            }
+        }
+
+        if(shouldBeSearched)
+        {
+            childrenAddress.push_back(childAddress[j]);
+        }
+
+    }
+
+    CMemMonitor::updateMem();
+    delete [] tempd;
 
     //showMemoryInfo2("testInternal.txt","searchEnd");
 }

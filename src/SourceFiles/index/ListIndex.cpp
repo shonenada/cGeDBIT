@@ -32,6 +32,50 @@ void CListIndex::bulkLoad(vector<shared_ptr<CIndexObject> > &_data,int runMode)
     objectList = _data;
 }
 
+
+void CListIndex::bulkLoad(vector<shared_ptr<CIndexObject> > &_dataList)
+{
+	objectList=_dataList;
+}
+
+void CListIndex::writeExternal(string fileName)
+{ 
+	ofstream out(fileName,ios::out|ios::binary);
+	
+	if(!out)
+		cout<<"open file "<<fileName<<" failed when writing index"<<endl;
+
+	long size=objectList.size();
+	
+	out.write((char*)(&size),sizeof(long));
+
+	for(int i=0;i<size;i++)
+		objectList[i]->writeExternal(out);
+
+	out.close();
+}
+
+void CListIndex::readExternal(string fileName)
+{
+	ifstream in(fileName,ios::in|ios::binary);
+	if(!in)
+		cout<<"open file "<<fileName<<" failed when reading index"<<endl;
+
+	long size=0;
+	
+	in.read((char*)(&size),sizeof(long));
+
+	for(int i=0;i<size;i++)
+	{
+		shared_ptr<CIndexObject> temp(new CDoubleVector());
+		temp->readExternal(in);
+
+		objectList.push_back(temp);
+	}
+	
+	in.close();
+
+}
 /**get all the objects resides in the index structure built before
  * @return return a vector contains all the object address
 */
@@ -64,7 +108,7 @@ CMetric* CListIndex::getMetric()
 vector<shared_ptr<CIndexObject> >* CListIndex::search(CQuery* q)
 {
 	CRangeQuery *rq=(CRangeQuery*)q;
-    vector<shared_ptr<CIndexObject> > rs;
+	vector<shared_ptr<CIndexObject> > *rs=new vector<shared_ptr<CIndexObject> >;
 	double objectDistance = 0;
 	double radius = 0;
 	for (vector<CIndexObject*>::size_type i=0;i!=objectList.size();i++)
@@ -73,7 +117,7 @@ vector<shared_ptr<CIndexObject> >* CListIndex::search(CQuery* q)
 
         radius = rq->getRadius();
 		if(objectDistance<=radius)
-			rs.push_back(objectList.at(i));
+			rs->push_back(objectList.at(i));
     }
-    return &rs;
+    return rs;
 }

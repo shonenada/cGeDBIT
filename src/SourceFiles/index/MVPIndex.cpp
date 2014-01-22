@@ -21,9 +21,35 @@ public:
     /**give class CMVPIndex a friend right to access the data information of a Task instance in the process of building a mvp tree*/
     friend CMVPIndex;
 
+	/**@brief constructor with six parameters
+    *	@param dataList a vector contains the address of all the obejct over which this mvp tree is built
+    *	@param parentIndex address of parent node
+    *	@param start the start index of current object partition in the whole data list
+    *	@param end the last object index of current object partition
+    *	@param myIndex current node index in parent node's children list
+    *	@param myHeight height of current node
+    */
+    Task(vector< shared_ptr<CIndexObject> > &dataList,shared_ptr<CIndexNode> parentIndex,int start,int end,int myIndex,int myHeight):dataList(dataList)
+    {
+        this->parentIndex=parentIndex;
+        this->myIndex=myIndex;
+
+        this->myHeight=myHeight;
+
+
+        this->start=start;
+        this->size=end-start;
+
+        numPivots=0;
+
+        this->node=0;
+
+    };
+
     ~Task()
     {        
-        //node.reset();
+        //cout<<"task will be destroyed !"<<endl;
+		//node.reset();
     }
 
     /**@brief move the pivot to the end of a object list partition
@@ -48,7 +74,10 @@ public:
     /**@brief get all the objects that belong to the tree rooted at this node*/
     void getDataPoints(vector< shared_ptr<CIndexObject> >&dataList);
 
-
+	vector<shared_ptr<CIndexObject>>& getDataList();
+	long getSize();
+	int getPivotNumber();
+	long getStart();
 
     void setNode(shared_ptr<CIndexNode> node)
     {
@@ -77,30 +106,7 @@ private:
 
     };
 
-    /**@brief constructor with six parameters
-    *	@param dataList a vector contains the address of all the obejct over which this mvp tree is built
-    *	@param parentIndex address of parent node
-    *	@param start the start index of current object partition in the whole data list
-    *	@param end the last object index of current object partition
-    *	@param myIndex current node index in parent node's children list
-    *	@param myHeight height of current node
-    */
-    Task(vector< shared_ptr<CIndexObject> > &dataList,shared_ptr<CIndexNode> parentIndex,int start,int end,int myIndex,int myHeight):dataList(dataList)
-    {
-        this->parentIndex=parentIndex;
-        this->myIndex=myIndex;
-
-        this->myHeight=myHeight;
-
-
-        this->start=start;
-        this->size=end-start;
-
-        numPivots=0;
-
-        this->node=0;
-
-    };
+    
 
     
 
@@ -222,8 +228,27 @@ void Task::getDataPoints(vector< shared_ptr<CIndexObject> > &objectList)
     }
 }
 
-/////////////////////////////////////////////////////////////
+vector<shared_ptr<CIndexObject> >& Task::getDataList()
+{
+	return dataList;
+}
 
+long Task::getSize()
+{
+	return size;
+}
+
+int Task::getPivotNumber()
+{
+	return numPivots;
+}
+
+long Task::getStart()
+{
+	return start;
+}
+
+/////////////////////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////
@@ -275,6 +300,7 @@ CMVPIndex::CMVPIndex(vector<shared_ptr<CIndexObject> > &dataObjects,CMetric *met
     this->totalSize=dataObjects.size();
     this->maxLeafSize=maxLeafSize;
 
+	filePointer=0;
     numLeaf=0;
     numInternalNodes=0;
 }
@@ -287,12 +313,15 @@ CMVPIndex::~CMVPIndex()
 
 ////////////////////////////////////////////////////////////////
 
-void CMVPIndex::bulkLoad(vector<shared_ptr<CIndexObject> > &data,int runMode)
+void CMVPIndex::bulkLoad(vector<shared_ptr<CIndexObject> > &data,int indexMode)
 {
-    if (runMode == 0)
+    if (indexMode == 0)
         loadLeafToRoot(data);
-    else 
+	else if(indexMode == 1)
         loadRootToLeaf(data);
+	else 
+		//parallelLoadLeafToRoot(data);
+		parallelBuildingMVPtree(data);
 }
 
 ///////////////////////////////////////////////////////////////
@@ -495,7 +524,7 @@ vector<shared_ptr<CIndexObject> >* CMVPIndex::search(CQuery* q)
 {
     //CMemMonitor::updateMem();
 
-    vector<shared_ptr<CIndexObject> > re;
+   
     CRangeQuery *rq=(CRangeQuery*)q;
 
 
@@ -538,12 +567,724 @@ vector<shared_ptr<CIndexObject> >* CMVPIndex::search(CQuery* q)
 
 }
 
+/*DATA STRUCT FOR BOTH WINDOWS AND C++11 STANDARD VERSION OF MULTI-THREAD CODING*/
+struct parallelBlock
+{
+	/*constuctor*/
+	//parallelBlock(){cout<<"building a parallel block"<<endl;}
+	/*desturctor*/
+	//~parallelBlock(){cout<<"rootTask.useCount:"<<rootTask.use_count()<<" destroying a parallel block"<<endl;}	
+	
+	ofstream *fstr;
+	int *numPivots;
+	CMetric *metric;
+	CPivotSelectionMethod *psm;
+	CPartitionMethod *pm;
+
+	vector<shared_ptr<Task> > *taskList;
+	vector<shared_ptr<Task> > *newTaskList;
+	int maxLeafSize;
+	int singlePivotFanout;
+	int *numInternalNode;
+	int *numLeafNode;
+
+	string fileName;
+	long *filePointer;
+	long *rootAddress;
+
+	shared_ptr<Task> rootTask;
+};
+
+
+/***************************************************WINDOWS VERSION MULTI-THREAD CODE BEGIN*************************************************************/
+HANDLE mutexA;
+HANDLE mutexB;
+HANDLE mutexO;
+
+long threadANum=0;
+long threadBNum=0;
+
+
+
+
+int createInternalNodeToWrite(shared_ptr<Task> task,vector<shared_ptr<Task> > *taskList,vector<shared_ptr<Task> >*newTaskList,CMetric *metric,CPartitionMethod *pm,int *numInternalNodes,int start,int size,int singlePivotFanout,int maxLeafSize)
+{
+	(*numInternalNodes)++;
+
+	/*get pivots of current node*/
+    vector<shared_ptr<CIndexObject> > pivots;
+    task->getPivots(pivots);
+
+
+    /*partition current partition into several smaller child partitons,the selected pivots are not in the section that will be partitioned in child partitions*/
+	CPartitionResults pr=pm->partition(metric,pivots,task->getDataList(),start,size - task->getPivotNumber(),singlePivotFanout,maxLeafSize);
+    int childrenNumber=pr.partitionSize();
+
+    /*create an internal node and assign its addres to the children list of parent node*/
+    vector<shared_ptr<CIndexNode> > *subTreeNode = new vector<shared_ptr<CIndexNode> >(childrenNumber-1);
+    shared_ptr< CMVPInternalNode> node(new CMVPInternalNode(pivots,pr.getLowerBounds(),pr.getUpperBounds(),*subTreeNode,task->getMyHeight()+1) );
+    node->setChildSize(childrenNumber-1);
+
+
+    task->setNode((shared_ptr<CIndexNode>) node );
+	
+	//shared_ptr<Task> temp;temp.reset(task);
+	newTaskList->push_back(task);
+    /*create several tasks base on each of the child partitions created before and then push these tasks to the global variable queue for the iteration of building child trees*/
+    for(int i=childrenNumber-1;i>0;i--)
+    {
+        int j=0;
+		shared_ptr<Task> newTask( new Task(task->getDataList(),node,pr.getPartition(i-1),pr.getPartition(i),i,task->getMyHeight()+1));       
+
+        taskList->push_back(newTask);
+
+    }
+
+	return 0;
+}
+
+int createAndWriteLeafNode(shared_ptr<Task> task,ofstream *out,vector<shared_ptr<Task> > *taskList,string fileName,long *filePointer,int *numLeaf,CMetric *metric,long *rootAddress)
+{
+
+    (*numLeaf)++;
+
+	/*get all the objects of current partition*/
+    vector<shared_ptr<CIndexObject> > children;
+    task->getDataPoints(children);
+
+    /*get all the pivots of current node*/
+    vector<shared_ptr<CIndexObject> > pivots;
+    task->getPivots(pivots);
+
+    vector<vector<double> > distance;
+
+    /*calcualte the distance from each of the objects of current parition to every pivots*/
+    for(vector<CIndexObject*>::size_type i=0;i<pivots.size();i++)
+    {
+        vector<double> ve;
+
+        for(vector<CIndexObject*>::size_type j=0;j<children.size();j++)
+        {
+            ve.push_back(metric->getDistance(children[j].get(),pivots[i].get()));
+        }
+
+        distance.push_back(ve);
+    }
+
+    /*create a leaf node and assign its memory address to the child list of parent node*/
+    shared_ptr<CMVPLeafNode> mvpLeafNode(new CMVPLeafNode(pivots,children,distance,task->getMyHeight()+1));
+
+    if(*rootAddress==-2)
+    {        
+
+        task->setNode((shared_ptr<CIndexNode>)mvpLeafNode);
+		taskList->push_back(task);
+        return 0;
+    }
+    else
+    {
+		WaitForSingleObject(mutexO,INFINITE);
+		out->open(fileName,ios::binary|ios::_Nocreate);
+		out->seekp(*filePointer);
+        char type[6] = "LNODE";
+        ((CMVPInternalNode*)task->getParentIndex().get())->getSubTreeAddress()[task->getMyIndex()-1]=*filePointer;
+        out->write(type,6*sizeof(char));
+		*filePointer=*filePointer+(long)mvpLeafNode->writeExternal(*out)+6*sizeof(char);
+		out->close();
+		ReleaseMutex(mutexO);
+		return 0;
+    }
+
+    
+}
+
+DWORD WINAPI threadOfCreateInternalOrLeafNode(LPVOID lpParameter)
+{
+	parallelBlock *pb=(parallelBlock*)lpParameter;
+	WaitForSingleObject(mutexA,INFINITE);
+
+	shared_ptr<Task> task=NULL;
+	if(pb->taskList->size()>0)
+	{
+		vector<shared_ptr<Task> >::iterator ite=pb->taskList->end();
+		ite--;
+		task=*ite;
+		pb->taskList->erase(ite);
+	}
+	ReleaseMutex(mutexA);
+
+	if(task!=NULL)
+	{
+		/*get the number of pivot*/
+		(*(pb->numPivots))=((*(pb->numPivots))>=task.get()->getSize())?task.get()->getSize():(*(pb->numPivots));
+
+		/*selecte several piovt from current partition based on the given parameter*/
+		vector<int> pivotsIndex;
+		pivotsIndex=pb->psm->selectPivots(pb->metric,task.get()->getDataList(),task.get()->getStart(),task.get()->getSize(),*(pb->numPivots));
+
+		/*move the pivot to the end of current partition*/
+		task.get()->groupPivotsAtEnd(pivotsIndex);
+
+		int remainDataSize=task.get()->getSize() - *(pb->numPivots);
+
+		if(remainDataSize>pb->maxLeafSize)
+		{
+			createInternalNodeToWrite(task,pb->taskList,pb->newTaskList,pb->metric,pb->pm,pb->numInternalNode,task.get()->getStart(),task.get()->getSize(),pb->singlePivotFanout,pb->maxLeafSize);
+		}
+		else
+		{
+			createAndWriteLeafNode(task,pb->fstr,pb->newTaskList,pb->fileName,pb->filePointer,pb->numLeafNode,pb->metric,pb->rootAddress);
+		}
+
+	}
+
+	threadANum--;
+
+	return 0;
+
+}
+
+int writeInternalNode(shared_ptr<Task> task,ofstream *out,string fileName,long *filePointer)
+{
+
+	WaitForSingleObject(mutexO,INFINITE);
+	out->open(fileName,ios::binary|ios::_Nocreate);
+
+	out->seekp(*filePointer);
+
+	CMVPInternalNode* parentNode = (CMVPInternalNode*)(task->getParentIndex().get());
+	parentNode->getSubTreeAddress()[task->getMyIndex()-1]=*filePointer;
+
+	char *type = "INODE";
+	out->write(type,6*sizeof(char));
+	*filePointer=*filePointer+(long)task->getNode()->writeExternal(*out)+6*sizeof(char);
+
+	out->close();
+	ReleaseMutex(mutexO);
+
+	return 0;
+}
+
+DWORD WINAPI threadOfWriteInternal(LPVOID lpParameter)
+{
+	parallelBlock *pb=(parallelBlock*)lpParameter;
+
+	WaitForSingleObject(mutexB,INFINITE);
+	shared_ptr<Task> task=NULL;
+	if(pb->newTaskList->size()>0)
+	{
+		vector<shared_ptr<Task> >::iterator ite=pb->newTaskList->end();
+		ite--;
+		task=*ite;
+		pb->newTaskList->erase(ite);
+	}
+	ReleaseMutex(mutexB);
+	if(task!=NULL)
+	{
+		if(task->getParentIndex()!=NULL)
+		{
+			writeInternalNode(task,pb->fstr,pb->fileName,pb->filePointer);
+			threadBNum--;
+		}
+		else
+		{
+			pb->rootTask=task;
+			threadBNum--;
+		}
+	}
+	else
+	{
+		threadBNum--;
+	}
+
+	return 0;
+}
+
+void CMVPIndex::parallelLoadLeafToRoot(vector<shared_ptr<CIndexObject> >&dataObject)
+{
+
+	ofstream out(fileName,ios::out|ios::binary);
+	out.close();
+
+	filePointer=0;//the pointer of file
+	
+	HANDLE tHandle;
+
+	vector<shared_ptr<Task> > newTaskList;
+
+	mutexA=CreateMutex(NULL,0,NULL);
+	mutexB=CreateMutex(NULL,0,NULL);
+	mutexO=CreateMutex(NULL,0,NULL);
+
+	if(dataObject.size()<=maxLeafSize+numPivots)
+		rootAddress=-2;
+	else
+		rootAddress=-1;
+
+
+	shared_ptr<Task> task(new Task(dataObject,NULL,0,dataObject.size(),0,0));
+
+	this->taskList.push_back(task);
+
+	parallelBlock pba;
+	{
+		pba.fstr=&out;
+		pba.numPivots=&(this->numPivots);
+		pba.metric=this->metric;
+		pba.maxLeafSize=this->maxLeafSize;
+		pba.taskList=&(this->taskList);
+		pba.newTaskList=&newTaskList;
+		pba.pm=this->pm;
+		pba.psm=this->psm;
+		pba.singlePivotFanout=this->singlePivotFanout;
+		pba.numInternalNode=&(this->numInternalNodes);
+		pba.numLeafNode=&(this->numLeaf);
+		pba.fileName=this->fileName;
+		pba.filePointer=&(this->filePointer);
+		pba.rootAddress=&(this->rootAddress);
+		pba.rootTask=NULL;
+		
+	}
+
+	while(this->taskList.size()>0||threadANum>0)
+	{
+
+		
+		if(this->taskList.size()>0&&threadANum<4)
+		{
+
+			threadANum++;
+			tHandle=CreateThread(NULL,0,threadOfCreateInternalOrLeafNode,&pba,0,NULL);
+			CloseHandle(tHandle);
+		}
+		else
+		{
+
+			Sleep(2000);
+		}
+
+	}
+
+	while(this->taskList.size()>0||newTaskList.size()==0)
+		Sleep(5000);
+
+	parallelBlock pbb;
+	{
+		pbb.fstr=&out;
+		pbb.numPivots=&(this->numPivots);
+		pbb.metric=this->metric;
+		pbb.maxLeafSize=this->maxLeafSize;
+		pbb.taskList=&(this->taskList);
+		pbb.newTaskList=&newTaskList;
+		pbb.pm=this->pm;
+		pbb.psm=this->psm;
+		pbb.singlePivotFanout=this->singlePivotFanout;
+		pbb.numInternalNode=&(this->numInternalNodes);
+		pbb.numLeafNode=&(this->numLeaf);
+		pbb.fileName=this->fileName;
+		pbb.filePointer=&(this->filePointer);
+		pbb.rootAddress=&(this->rootAddress);
+		pbb.rootTask=NULL;
+	}
+
+	while(pbb.newTaskList->size()>0||threadBNum>0)
+	{
+		if(pbb.newTaskList->size()>0&&threadBNum<4)
+		{
+			threadBNum++;
+			tHandle=CreateThread(NULL,0,threadOfWriteInternal,&pbb,0,NULL);
+			CloseHandle(tHandle);
+		}
+		else 
+		{
+			Sleep(2000);
+		}
+	}
+
+	while(pbb.newTaskList->size()>0||threadBNum>0||this->taskList.size()>0||threadANum>0)
+		Sleep(5000);
+
+	writeRoot(pbb.rootTask,out);
+
+}
+/***************************************************WINDOWS VERSION MULTI-THREAD CODE END*************************************************************/
+/***************************************************C++11 STANDARD VERSION MULTI-THREAD CODE BEGIN***************************************************************/
+mutex stMutexA;
+mutex stMutexB;
+mutex stMutexO;
+mutex stMutexN;
+
+int stdThreadNumA=0;
+int stdThreadNumB=0;
+
+int standardCreateInternalNodeToWrite(shared_ptr<Task> task,vector<shared_ptr<Task> > *taskList,vector<shared_ptr<Task> >*newTaskList,CMetric *metric,CPartitionMethod *pm,int *numInternalNodes,int start,int size,int singlePivotFanout,int maxLeafSize)
+{
+	(*numInternalNodes)++;
+
+	/*get pivots of current node*/
+    vector<shared_ptr<CIndexObject> > pivots;
+    task->getPivots(pivots);
+
+
+    /*partition current partition into several smaller child partitons,the selected pivots are not in the section that will be partitioned in child partitions*/
+	CPartitionResults pr=pm->partition(metric,pivots,task->getDataList(),start,size - task->getPivotNumber(),singlePivotFanout,maxLeafSize);
+    int childrenNumber=pr.partitionSize();
+
+    /*create an internal node and assign its addres to the children list of parent node*/
+    vector<shared_ptr<CIndexNode> > *subTreeNode = new vector<shared_ptr<CIndexNode> >(childrenNumber-1);
+    shared_ptr< CMVPInternalNode> node(new CMVPInternalNode(pivots,pr.getLowerBounds(),pr.getUpperBounds(),*subTreeNode,task->getMyHeight()+1) );
+    node->setChildSize(childrenNumber-1);
+
+
+    task->setNode((shared_ptr<CIndexNode>) node );
+	
+	//shared_ptr<Task> temp;temp.reset(task);
+	stMutexB.lock();
+	newTaskList->push_back(task);
+	stMutexB.unlock();
+    /*create several tasks base on each of the child partitions created before and then push these tasks to the global variable queue for the iteration of building child trees*/
+    for(int i=childrenNumber-1;i>0;i--)
+    {
+        int j=0;
+		shared_ptr<Task> newTask( new Task(task->getDataList(),node,pr.getPartition(i-1),pr.getPartition(i),i,task->getMyHeight()+1));       
+		stMutexA.lock();
+        taskList->push_back(newTask);
+		stMutexA.unlock();
+    }
+
+	return 0;
+}
+
+int standardCreateAndWriteLeafNode(shared_ptr<Task> task,ofstream *out,vector<shared_ptr<Task> > *taskList,string fileName,long *filePointer,int *numLeaf,CMetric *metric,long *rootAddress)
+{
+
+    (*numLeaf)++;
+
+	/*get all the objects of current partition*/
+    vector<shared_ptr<CIndexObject> > children;
+    task->getDataPoints(children);
+
+    /*get all the pivots of current node*/
+    vector<shared_ptr<CIndexObject> > pivots;
+    task->getPivots(pivots);
+
+    vector<vector<double> > distance;
+
+    /*calcualte the distance from each of the objects of current parition to every pivots*/
+    for(vector<CIndexObject*>::size_type i=0;i<pivots.size();i++)
+    {
+        vector<double> ve;
+
+        for(vector<CIndexObject*>::size_type j=0;j<children.size();j++)
+        {
+            ve.push_back(metric->getDistance(children[j].get(),pivots[i].get()));
+        }
+
+        distance.push_back(ve);
+    }
+
+    /*create a leaf node and assign its memory address to the child list of parent node*/
+    shared_ptr<CMVPLeafNode> mvpLeafNode(new CMVPLeafNode(pivots,children,distance,task->getMyHeight()+1));
+
+    if(*rootAddress==-2)
+    {        
+
+        task->setNode((shared_ptr<CIndexNode>)mvpLeafNode);
+		taskList->push_back(task);
+        return 0;
+    }
+    else
+    {
+		stMutexO.lock();
+		//out->open(fileName,ios::binary|ios::_Nocreate);
+		//out->seekp(*filePointer);
+        char type[6] = "LNODE";
+        ((CMVPInternalNode*)task->getParentIndex().get())->getSubTreeAddress()[task->getMyIndex()-1]=*filePointer;
+        out->write(type,6*sizeof(char));
+		*filePointer=*filePointer+(long)mvpLeafNode->writeExternal(*out)+6*sizeof(char);
+		//out->close();
+		stMutexO.unlock();
+		return 0;
+    }
+
+    
+}
+
+void standardThreadOfCreateInternalOrLeafNode(parallelBlock *pb)
+{
+	
+	stMutexA.lock();
+	shared_ptr<Task> task=NULL;
+	if(pb->taskList->size()>0)
+	{
+		vector<shared_ptr<Task> >::iterator ite=pb->taskList->end();
+		ite--;
+		task=*ite;
+		pb->taskList->erase(ite);
+	}
+	stMutexA.unlock();
+
+	if(task!=NULL)
+	{
+		/*get the number of pivot*/
+		//(*(pb->numPivots))=((*(pb->numPivots))>=task.get()->getSize())?task.get()->getSize():(*(pb->numPivots));
+		int pivotNum=((*(pb->numPivots)>=task.get()->getSize())?task.get()->getSize():(*(pb->numPivots)));
+
+		/*selecte several piovt from current partition based on the given parameter*/
+		vector<int> pivotsIndex;
+		pivotsIndex=pb->psm->selectPivots(pb->metric,task.get()->getDataList(),task.get()->getStart(),task.get()->getSize(),pivotNum);
+
+		/*move the pivot to the end of current partition*/
+		task.get()->groupPivotsAtEnd(pivotsIndex);
+
+		int remainDataSize=task.get()->getSize() - pivotNum;
+
+		if(remainDataSize>pb->maxLeafSize)
+		{
+			standardCreateInternalNodeToWrite(task,pb->taskList,pb->newTaskList,pb->metric,pb->pm,pb->numInternalNode,task.get()->getStart(),task.get()->getSize(),pb->singlePivotFanout,pb->maxLeafSize);
+		}
+		else
+		{
+			standardCreateAndWriteLeafNode(task,pb->fstr,pb->newTaskList,pb->fileName,pb->filePointer,pb->numLeafNode,pb->metric,pb->rootAddress);
+		}
+
+	}
+
+	stMutexN.lock();
+	stdThreadNumA--;
+	stMutexN.unlock();
+
+	return;
+}
+
+int standardWriteInternalNode(shared_ptr<Task> task,ofstream *out,string fileName,long *filePointer)
+{
+
+	stMutexO.lock();
+	//out->open(fileName,ios::binary|ios::_Nocreate);
+
+	//out->seekp(*filePointer);
+
+	CMVPInternalNode* parentNode = (CMVPInternalNode*)(task->getParentIndex().get());
+	parentNode->getSubTreeAddress()[task->getMyIndex()-1]=*filePointer;
+
+	char *type = "INODE";
+	out->write(type,6*sizeof(char));
+	*filePointer=*filePointer+(long)task->getNode()->writeExternal(*out)+6*sizeof(char);
+
+	//out->close();
+	stMutexO.unlock();
+	return 0;
+}
+
+void standardThreadOfWriteInternalNode(parallelBlock *pb)
+{
+
+	stMutexB.lock();
+	shared_ptr<Task> task=NULL;
+	if(pb->newTaskList->size()>0)
+	{
+		vector<shared_ptr<Task> >::iterator ite=pb->newTaskList->end();
+		ite--;
+		task=*ite;
+		pb->newTaskList->erase(ite);
+	}
+	stMutexB.unlock();
+
+	if(task!=NULL)
+	{
+		if(task->getParentIndex()!=NULL)
+		{
+			standardWriteInternalNode(task,pb->fstr,pb->fileName,pb->filePointer);
+			stMutexN.lock();
+			stdThreadNumB--;
+			stMutexN.unlock();
+		}
+		else
+		{
+			pb->rootTask=task;
+			stMutexN.lock();
+			stdThreadNumB--;
+			stMutexN.unlock();
+		}
+	}
+	else
+	{
+		stMutexN.lock();
+		stdThreadNumB--;
+		stMutexN.unlock();
+	}
+
+	return;
+}
+
+void CMVPIndex::parallelBuildingMVPtree(vector<shared_ptr<CIndexObject> > &dataObjectList)
+{
+	//cout<<"start parallel building"<<endl;
+	ofstream outfile(fileName,ios::out|ios::binary);
+	
+
+	filePointer=0;
+
+	if(dataObjectList.size()<=maxLeafSize+numPivots)
+		rootAddress=-2;
+	else
+		rootAddress=-1;
+
+	vector<shared_ptr<Task> > taskList;
+	vector<shared_ptr<Task> > newTaskList;
+	
+	shared_ptr<Task> task(new Task(dataObjectList,NULL,0,dataObjectList.size(),0,0));//first task
+
+	taskList.push_back(task);
+
+	parallelBlock pba;
+	{
+		pba.fileName=fileName;
+		pba.filePointer=&filePointer;
+		pba.fstr=&outfile;
+		pba.maxLeafSize=maxLeafSize;
+		pba.metric=metric;
+		pba.newTaskList=&newTaskList;
+		pba.taskList=&taskList;
+		pba.numInternalNode=&numInternalNodes;
+		pba.numLeafNode=&numLeaf;
+		pba.numPivots=&numPivots;
+		pba.pm=pm;
+		pba.psm=psm;
+		pba.rootAddress=&rootAddress;
+		pba.rootTask=NULL;
+		pba.singlePivotFanout=singlePivotFanout;
+	}
+
+	int dataobjectSize=dataObjectList.size();
+	int numThreadNum=pow(pow(singlePivotFanout,numPivots),ceil(log(dataobjectSize)/log(maxLeafSize)));
+
+	while(taskList.size()>0||stdThreadNumA>0)
+	{
+		if(taskList.size()>0&&stdThreadNumA<numThreadNum)
+		//if(taskList.size()>0)
+		{
+			stMutexN.lock();
+			stdThreadNumA++;
+			stMutexN.unlock();
+			std::thread newThread(standardThreadOfCreateInternalOrLeafNode,&pba);
+			newThread.detach();
+			//newThread.join();
+		}
+		else
+		{
+		#ifdef WIN32
+			Sleep(1000);
+		#else
+			sleep(1);
+		#endif
+		}
+	}
+
+	//cout<<threadANum<<" write leaf node over!"<<endl;
+
+	while(taskList.size()>0||stdThreadNumA>0)
+#ifdef WIN32
+		Sleep(1000);
+#else
+		sleep(1);
+#endif
+
+/**
+	parallelBlock pbb;
+	{
+		pbb.fstr=&outfile;
+		pbb.numPivots=&(this->numPivots);
+		pbb.metric=this->metric;
+		pbb.maxLeafSize=this->maxLeafSize;
+		pbb.taskList=&(this->taskList);
+		pbb.newTaskList=&newTaskList;
+		pbb.pm=this->pm;
+		pbb.psm=this->psm;
+		pbb.singlePivotFanout=this->singlePivotFanout;
+		pbb.numInternalNode=&(this->numInternalNodes);
+		pbb.numLeafNode=&(this->numLeaf);
+		pbb.fileName=this->fileName;
+		pbb.filePointer=&(this->filePointer);
+		pbb.rootAddress=&(this->rootAddress);
+		pbb.rootTask=NULL;
+	}
+
+	while(newTaskList.size()>0||stdThreadNumB>0)
+	{
+		if(newTaskList.size()>0&&stdThreadNumB<30)
+		//if(newTaskList.size()>0)
+		{
+			stMutexN.lock();
+			stdThreadNumB++;
+			stMutexN.unlock();
+			std::thread newThread(standardThreadOfWriteInternalNode,&pbb);
+			newThread.join();
+		}
+		else
+		{
+		#ifdef WIN32
+			Sleep(1000);
+		#else
+			sleep(1);
+		#endif
+		}
+	}
+
+	while(taskList.size()>0||newTaskList.size()>0||stdThreadNumA>0||stdThreadNumB>0)
+#ifdef WIN32
+		Sleep(1000);
+#else
+		sleep(1);
+#endif
+
+	outfile.close();
+	writeRoot(pbb.rootTask,outfile);
+**/
+
+/**
+TODO
+    1. 上面的第二部分是多线程写内部结点，写过程主要是打开文件移动文件指针和关闭文件，没有cpu计算，而且采用多线程需要在设定文件指针锁，有额外开销，所以不用多线程应该会写的快点，这样会加快建树过程
+	2. 写内部结点的时候写一个打开以下文件，关闭以下文件，这要消耗时间，应该可以从头到尾只开一次，关闭一次
+DONE 20131124  by Fuli Lei
+**/
+	//cout<<__FILE__<<__LINE__<<endl;
+	vector<shared_ptr<Task>>::iterator ite;
+
+	while(newTaskList.size()>1)
+	{
+		ite=newTaskList.end();
+		ite--;
+		shared_ptr<Task> temp=*ite;
+		
+		writeInternalNode(temp,outfile);
+
+		newTaskList.erase(ite);
+	}
+	outfile.close();
+
+	while(taskList.size()>0||newTaskList.size()>1||stdThreadNumA>0)
+#ifdef WIN32
+		Sleep(1000);
+#else
+		sleep(1);
+#endif
+
+	writeRoot(newTaskList.at(0),outfile);
+
+
+}
+
+/***************************************************C++11 STANDARD VERSION MULTI-THREAD CODE END*************************************************************/
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CMVPIndex::loadLeafToRoot(vector<shared_ptr<CIndexObject> > &dataObjects)
 {
-    /*PropertyConfigurator::doConfigure(LOG4CPLUS_TEXT("log.properties"));
-    Logger logger = Logger::getRoot();*/
+
+    //PropertyConfigurator::doConfigure(LOG4CPLUS_TEXT("log.properties"));
+    //Logger logger = Logger::getRoot();
 
     ofstream out;
 
@@ -551,7 +1292,7 @@ void CMVPIndex::loadLeafToRoot(vector<shared_ptr<CIndexObject> > &dataObjects)
     out.close();
 
     filePointer = 0;
-    if(dataObjects.size()<=maxLeafSize)
+	if(dataObjects.size()<=maxLeafSize+numPivots)
     {
         rootAddress = -2;
     }
@@ -594,7 +1335,7 @@ void CMVPIndex::loadLeafToRoot(vector<shared_ptr<CIndexObject> > &dataObjects)
             task->groupPivotsAtEnd(pivotsIndex);
 
             remainNodeSize=task->size - task->numPivots;//task->size-task->numPivots
-            //LOG4CPLUS_TRACE(loggerObj,"remain size:"<<remainNodeSize);
+            //LOG4CPLUS_TRACE(logspace::logToFile(),"remain size:"<<remainNodeSize);
             /*if the size of current partition is greater than the max size of a leaf node then create a internal node, otherwise create a leaf node.the max size of leaf node is given by the builder of the mvp-tree*/
             if(remainNodeSize>maxLeafSize)
                 createInternalNodeToWrite(task);
@@ -613,7 +1354,9 @@ void CMVPIndex::loadLeafToRoot(vector<shared_ptr<CIndexObject> > &dataObjects)
         }
         else
         {
+			out.open(fileName,ios::binary|ios::_Nocreate);
             writeInternalNode(task,out);
+			out.close();
             taskList.erase(taskToGet);
             task.reset();
             if(taskList.size()==1)
@@ -634,7 +1377,7 @@ void CMVPIndex::loadRootToLeaf(vector<shared_ptr<CIndexObject> > &dataObjects)
     out.close();
 
     filePointer = 0;
-    if(dataObjects.size()<=maxLeafSize)
+	if(dataObjects.size()<=maxLeafSize+numPivots)
     {
         rootAddress = -2;
     }
@@ -664,7 +1407,6 @@ void CMVPIndex::loadRootToLeaf(vector<shared_ptr<CIndexObject> > &dataObjects)
         taskToGet--;
 
         task = *taskToGet;
-
 
         /*get the number of pivot*/
         numPivots = (this->numPivots>=task->size) ? task->size : this->numPivots;
@@ -722,11 +1464,11 @@ void CMVPIndex::createAndWriteLeafNode(shared_ptr <Task> task,ofstream &out)
     out.seekp(filePointer);
 
     this->numLeaf++;
-    /*cout<<"leafNode:"<<numLeaf<<endl;*/
+    //cout<<"leafNode:"<<numLeaf<<endl;
     /*get all the objects of current partition*/
     vector<shared_ptr<CIndexObject> > children;
     task->getDataPoints(children);
-
+	//cout<<"childsize:"<<children.size()<<endl;
     /*get all the pivots of current node*/
     vector<shared_ptr<CIndexObject> > pivots;
     task->getPivots(pivots);
@@ -760,9 +1502,9 @@ void CMVPIndex::createAndWriteLeafNode(shared_ptr <Task> task,ofstream &out)
     else
     {
         char type[6] = "LNODE";
-
-        ((CMVPInternalNode*)task->getParentIndex().get())->getSubTreeAddress()[task->getMyIndex()-1]=filePointer;
-
+        
+		((CMVPInternalNode*)task->getParentIndex().get())->getSubTreeAddress()[task->getMyIndex()-1]=filePointer;
+		
         out.write(type,6*sizeof(char));
         filePointer+=(long)mvpLeafNode->writeExternal(out)+6*sizeof(char);
         /*delete(type);*/
@@ -808,7 +1550,7 @@ void CMVPIndex::createInternalNodeToWrite(shared_ptr <Task> task)
 
 void CMVPIndex::writeInternalNode(shared_ptr <Task>task,ofstream& out)
 {
-    out.open(fileName,ios::binary|ios::_Nocreate);
+    //out.open(fileName,ios::binary|ios::_Nocreate);
 
     out.seekp(filePointer);
 
@@ -820,7 +1562,7 @@ void CMVPIndex::writeInternalNode(shared_ptr <Task>task,ofstream& out)
     filePointer+=(long)task->getNode()->writeExternal(out)+6*sizeof(char);
     /* delete(type);*/
 
-    out.close();
+    //out.close();
 }
 
 void CMVPIndex::writeRoot(shared_ptr <Task> task,ofstream& out)
@@ -829,7 +1571,8 @@ void CMVPIndex::writeRoot(shared_ptr <Task> task,ofstream& out)
 
     out.seekp(filePointer);
 
-    char *type1="INODE";
+	long tempi=0;
+	char *type1="INODE";
     char *type2="LNODE";
 
     if(rootAddress == -2)
@@ -837,14 +1580,12 @@ void CMVPIndex::writeRoot(shared_ptr <Task> task,ofstream& out)
     else
         out.write(type1,6*sizeof(char));
 
-    task->getNode()->writeExternal(out);
+	task->getNode()->writeExternal(out);
     rootAddress = filePointer;
     out.write((char*)(&rootAddress),sizeof(long));
 
-    out.close();
-    //delete(type1);
-    //delete(type2);
-
+	out.close();
+	
 }
 
 void CMVPIndex::createAndWriteInternalNode(shared_ptr <Task> task,ofstream& out,vector<shared_ptr<Task> >::iterator &shouldeBeCreate)
@@ -886,7 +1627,7 @@ void CMVPIndex::createAndWriteInternalNode(shared_ptr <Task> task,ofstream& out,
 
     char *type = "INODE";
     out.write(type,6*sizeof(char));
-    long tempDelta = (long)task->getNode()->writeExternal(out)+6*sizeof(char);
+    long tempDelta = node->writeExternal(out)+6*sizeof(char);
     /* delete(type);*/
 
     out.close();
@@ -898,7 +1639,7 @@ void CMVPIndex::createAndWriteInternalNode(shared_ptr <Task> task,ofstream& out,
     {
         shared_ptr <Task> newTask ( new Task(task->dataList,node,pr.getPartition(i-1),pr.getPartition(i),i,task->getMyHeight()+1));
 
-        newTask->myIndexAdress = (long) (filePointer+(newTask->myIndex-1)*sizeof(long)+sizeof(int))+6*sizeof(char);
+        newTask->myIndexAdress = (long) (filePointer+(newTask->myIndex-1)*sizeof(long)+sizeof(int))+6*sizeof(char);//上12行为父节点写出的入口，filePoointer（此时此刻的文件指针）+ 孩子在父节点中孩子列表中的序列数*sizeof（long)+孩子个数(个数为int类型，因为父节点在写出的时候是先写出孩子个数然后才写每个孩子的文件指针值（long类型））+上13行输出的字符串所占用的宽度
 
         this->taskList.push_back(newTask);
 
