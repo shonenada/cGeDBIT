@@ -2,6 +2,7 @@
 #define LISTINDEX_H
 #include "Index.h"
 #include "../query/RangeQuery.h"
+#include "../objects/DoubleVector.h"
 
 #include <string>
 
@@ -63,6 +64,9 @@ public:
 	*/
 	virtual int size();
 
+	void bulkLoad(vector<shared_ptr<CIndexObject> >	&objectlist);
+	void writeExternal(string fileName);
+	void readExternal(string fileName);
 
 private:
 

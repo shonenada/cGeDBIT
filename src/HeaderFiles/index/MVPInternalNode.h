@@ -76,8 +76,8 @@ public:
     virtual void travelSearch(CRangeQuery &q,CMetric &metric,vector<shared_ptr<CIndexObject> > &result);
 
     void setChildSize(int size);
-
-    long* getSubTreeAddress();
+	int getChildeSize();
+	long* getSubTreeAddress();
     long getSubTreeRootAddress(int subTreeIndex);
 
     virtual int writeExternal(ofstream &out);
@@ -86,6 +86,7 @@ public:
     virtual void searchIndex(CRangeQuery &q,long filePointer,ifstream &in,CMetric &metric,vector<shared_ptr<CIndexObject> > &result,string &dataType);
     virtual void searchExternal(CRangeQuery &q,long filePointer,ifstream &in,CMetric &metric,vector<shared_ptr<CIndexObject> > &result,deque<long> &childrenAddress,string &dataType);
 
+	void SMTSearchExternal(CRangeQuery &q,long filePointer,ifstream &in,CMetric &metric,vector<shared_ptr<CIndexObject> > *&rs,deque<long> &childrenAddress,string &dataType,mutex &mux,mutex &r_mutex);
 private:
 
 	/**this is a sub-tree root addresses list*/

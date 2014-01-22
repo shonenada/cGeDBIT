@@ -1,17 +1,20 @@
 #ifndef MVPINDEX_H
 #define MVPINDEX_H
 
-#include "../indexalgorithm/PartitionMethod.h"
-#include "../indexalgorithm/PivotSelectionMethod.h"
+#include "..\indexalgorithm\PartitionMethod.h"
+#include "..\indexalgorithm\PivotSelectionMethod.h"
+#include "..\util\logTool.h"
 
 
 #include <string>
-
+//#include <thread>
+//#include <mutex>
 
 #include "Index.h"
 #include "MVPInternalNode.h"
 #include "MVPLeafNode.h"
 
+using std::thread;
 
 
 
@@ -104,10 +107,6 @@ public:
 	CMetric* getMetric();
 	void setMetric(CMetric *objMetric);
 
-
-
-
-    
     virtual void setDataType(string dataType);
 
     virtual string getDataType();
@@ -132,6 +131,11 @@ public:
     void writeRoot(shared_ptr <Task> task,ofstream& out);
 
     void createAndWriteLeafNodeLast(shared_ptr <Task> task,ofstream &out);
+
+
+	void parallelLoadLeafToRoot(vector<shared_ptr<CIndexObject> >&dataObjectList);
+
+	void parallelBuildingMVPtree(vector<shared_ptr<CIndexObject> > &dataObjectList);
 
 private:
     

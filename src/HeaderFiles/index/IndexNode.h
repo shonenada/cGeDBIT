@@ -11,6 +11,8 @@
 
 #include <list>
 #include <deque>
+#include <thread>
+#include <mutex>
 
 /** @file IndexNode.h
 * @classes about index
@@ -89,6 +91,7 @@ public:
     virtual void searchIndex(CRangeQuery &q,long filePointer,ifstream &in,CMetric &metric,vector<shared_ptr<CIndexObject> > &result,string &dataType)=0;
     virtual void searchExternal(CRangeQuery &q,long filePointer,ifstream &in,CMetric &metric,vector<shared_ptr<CIndexObject> > &result,deque<long> &childrenAddress,string &dataType)=0;
 
+	virtual void SMTSearchExternal(CRangeQuery &q,long filePointer,ifstream &in,CMetric &metric,vector<shared_ptr<CIndexObject> > *&rs,deque<long> &childrenAddress,string &dataType,mutex &mux,mutex &r_mutex)=0;
 protected:
     /**this is a vector containing the address of all the pivots belonging to this node*/
     vector<shared_ptr<CIndexObject> > pivots;

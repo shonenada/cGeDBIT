@@ -64,6 +64,7 @@ public:
     virtual void searchIndex(CRangeQuery &q,long filePointer,ifstream &in,CMetric &metric,vector<shared_ptr<CIndexObject> > &result,string &dataType);
     virtual void searchExternal(CRangeQuery &q,long filePointer,ifstream &in,CMetric &metric,vector<shared_ptr<CIndexObject> > &result,deque<long> &childrenAddress,string &dataType);
 
+	void SMTSearchExternal(CRangeQuery &q,long filePointer,ifstream &in,CMetric &metric,vector<shared_ptr<CIndexObject> > *&rs,deque<long> &childrenAddress,string &dataType,mutex &mux,mutex &r_mutex);
 private:
 
     /**all the address of objects that reside in this node is stored in this vector*/

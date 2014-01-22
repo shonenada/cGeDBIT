@@ -31,6 +31,8 @@ using namespace std;
 * This abstract class is the primary interface for distance-based index. 
 * users can build a database index or read a pre-build index from a file,
 * then do the search.
+
+* The primary interface for distance-based index. Through Index, the user can build a database index, or read a pre-built index from a file, and then do the search.
 */
 
 class CIndex
@@ -85,6 +87,11 @@ public:
     virtual string getFileName();
 
     virtual ~CIndex();
+
+	//not for research, just be used to show how to build a index, more detail infomation can be found in SampleMainFunction.cpp
+	  virtual void bulkLoad(vector<shared_ptr<CIndexObject> > &dataObject);
+	  virtual void writeExternal(string fileName);
+	  virtual void readExternal (string fileName);
 
 protected:
 
