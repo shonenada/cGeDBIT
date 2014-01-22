@@ -92,17 +92,18 @@ vector<shared_ptr<CIndexObject> >* CDoubleVector::loadData(string fileName,int m
 
     string str="";
 
-    in >> num >> dim;	
+    in >> dim >> num;	
     getline(in,str);
 
     dim = dim>dimension ? dimension:dim;
     num = num>maxDataNum ? maxDataNum:num;
 
+	data = new double[dim];
+
     for(i=0;i<num;i++)
     {
         getline(in,str);
         stringstream newStr(str);
-        data = new double[dim];
 
         for(j=0; j<dim; j++)
         {
@@ -112,6 +113,10 @@ vector<shared_ptr<CIndexObject> >* CDoubleVector::loadData(string fileName,int m
         temp.reset(new CDoubleVector(data, dim));
         a->push_back(temp);
     }
+
+	/*release the memory*/
+	delete [] data;
+	data=0;
 
     return a;
 }

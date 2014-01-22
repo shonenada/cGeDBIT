@@ -28,7 +28,7 @@
 #include "../HeaderFiles/metric/RNAMetric.h"
 #include "../HeaderFiles/metric/PeptideMetric.h"
 
-
+#define WIN_C
 
 #if defined(_MSC_VER)
 #include "../HeaderFiles/util/getopt_win.h"
@@ -50,20 +50,17 @@
 #include <cstring>
 
 
-#define WIN_C
-#ifndef WIN_C
-#include<sys/times>
-#else
+
+
 #include <Windows.h>
 #include <psapi.h>
 #pragma comment(lib,"psapi.lib")  
-#endif
 
 using namespace std;
 
-extern void buildAndSearch(char *&dataFileName,int &numPivot,int setA,int setN,int &singlePivotFanout,int fftscale,char *&pivotSelectionMethod,char *&partitionMethod,int &maxLeafSize,char *&dataType,int initialSize,int finalSize,int stepSize,bool bucket,int &fragmentLength,int dim,double maxR,char *&indexType,int fftOpt,char* queryFileName,int firstQuery,int lastQuery,double maxRadius,double minRadius,double step,bool verify,char *resultsFileName,int runMode,char *indexName,int indexMode);
+extern void buildAndSearch(char *&dataFileName,int &numPivot,int setA,int setN,int &singlePivotFanout,int fftscale,char *&pivotSelectionMethod,char *&partitionMethod,int &maxLeafSize,char *&dataType,int initialSize,int finalSize,int stepSize,bool bucket,int &fragmentLength,int dim,double maxR,char *&indexType,int fftOpt,char* queryFileName,int firstQuery,int lastQuery,double maxRadius,double minRadius,double step,bool verify,char *resultsFileName,int runMode,char *indexName,int indexMode,double MF_maxRadius,double MF_middleProportion,bool putinfo);
 
-extern void batchBulkLoad(char *&dataFileName,int &numPivot,int setA,int setN,int &singlePivotFanout,int fftscale,char *&pivotSelectionMethod,char *&partitionMethod,int &maxLeafSize,char *&dataType,int initialSize,int finalSize,int stepSize,bool bucket,int &fragmentLength,int dim,double maxR,char *&indexType,int fftOpt,char *&buildingInformationFile,int runMode,char *indexName);
+extern void batchBulkLoad(char *&dataFileName,int &numPivot,int setA,int setN,int &singlePivotFanout,int fftscale,char *&pivotSelectionMethod,char *&partitionMethod,int &maxLeafSize,char *&dataType,int initialSize,int finalSize,int stepSize,bool bucket,int &fragmentLength,int dim,double maxR,char *&indexType,int fftOpt,char *buildingInformationFile,int runMode,char *indexName,double MF_maxRadius,double MF_middleProportion,bool putinfo);
 
 extern void searchIndex(int searchSize,char* queryFileName,char *dataType,int firstQuery,int lastQuery,int dim,int fragmentLength,double maxRadius,double minRadius,double step,bool verify,char *resultsFileName,int runMode,char *indexName,int indexMode);
 
@@ -79,18 +76,185 @@ type stringToNumber(const char str[])
 	return data;
 }
 
-void showMemoryInfo(char * resultsFileName)  
-{  
-	char resultFile[100]="./data/";
-	strcat(resultFile,resultsFileName);
-	ofstream output(resultFile,ofstream::app);
-	HANDLE handle=GetCurrentProcess();  
-	PROCESS_MEMORY_COUNTERS pmc;  
-	GetProcessMemoryInfo(handle,&pmc,sizeof(pmc));  
-	output<<"当前物理内存使用:"<<pmc.WorkingSetSize/1048576.0 <<" MB / 峰值物理内存使用:"<<pmc.PeakWorkingSetSize/1048576.0<<" MB "<<endl; 
-	output<<"当前虚拟内存使用："<<pmc.PagefileUsage/1048576.0<<" MB/ 峰值虚拟内存使用："<< pmc.PeakPagefileUsage/1048576.0<<" MB "<<endl;
-	output<<"当前内存使用："<<pmc.PagefileUsage/1048576.0 + pmc.WorkingSetSize/1048576.0<<" MB/ 峰值内存使用："<< pmc.PeakPagefileUsage/1048576.0 + pmc.PeakWorkingSetSize/1048576.0 <<" MB "<<endl;
+void resultfilename(int runMode,char *dataFileName,int numPivot,int setA,int setN,int singlePivotFanout,int fftscale,char *pivotSelectionMethod,char *partitionMethod,int maxLeafSize,char *dataType,int initialSize,int finalSize,	int stepSize,bool bucket,int fragmentLength,int dim,double maxR,char *indexType,int fftopt,char *indexName,char* queryFileName,int firstQuery,int lastQuery,double maxRadius,double minRadius,double step,bool verify,char *resultsFileName,char *runOption,int indexMode,double MF_maxRadius,double MF_middleProportion)
+{
+	char temp[100];
+
+	if(strcmp(runOption,"build")==0)
+		strcpy(resultsFileName,"build_");
+	else if(strcmp(runOption,"search")==0)
+		strcpy(resultsFileName,"search_");
+
+	strcat(resultsFileName,"t");
+	strcat(resultsFileName,dataType);
+	strcat(resultsFileName,"_");
+
+	strcat(resultsFileName,"init");
+	//itoa(initialSize,temp,10); 
+	sprintf(temp,"%d",initialSize);
+	strcat(resultsFileName,temp);
+	strcat(resultsFileName,"_");
+
+	if(strcmp(dataType,"rna")==0 || strcmp(dataType,"dna")==0 || strcmp(dataType,"peptide")==0)
+	{
+		strcat(resultsFileName,"frag");
+		sprintf(temp,"%d",fragmentLength);
+		//itoa(fragmentLength,temp,10); 
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+	}
+
+	if(strcmp(dataType,"vector")==0){
+		strcat(resultsFileName,"dim");
+		sprintf(temp,"%d",dim);
+		//itoa(dim,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");}
+
+	if(strcmp(runOption,"build")==0)
+	{
+		strcat(resultsFileName,"n");
+		strcat(resultsFileName,dataFileName);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"v");
+		sprintf(temp,"%d",numPivot);
+		//itoa(numPivot,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+
+		if(strcmp(pivotSelectionMethod,"incremental")==0)
+		{strcat(resultsFileName,"seta");
+		sprintf(temp,"%d",setA);
+		//itoa(setA,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"setn");
+		sprintf(temp,"%d",setN);
+		//itoa(setN,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");}
+
+		strcat(resultsFileName,"f");
+		//itoa(singlePivotFanout,temp,10);
+		sprintf(temp,"%d",singlePivotFanout);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+
+		if(strcmp(pivotSelectionMethod,"pcaonfft")==0){
+			strcat(resultsFileName,"ffts");
+			sprintf(temp,"%d",fftscale);
+			//itoa(fftscale,temp,10);
+			strcat(resultsFileName,temp);
+			strcat(resultsFileName,"_");}
+
+		strcat(resultsFileName,"psm");
+		strcat(resultsFileName,pivotSelectionMethod);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"dpm");
+		strcat(resultsFileName,partitionMethod);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"m");
+		sprintf(temp,"%d",maxLeafSize);
+		//itoa(maxLeafSize,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"F");
+		sprintf(temp,"%d",finalSize);
+		//itoa(finalSize,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"s");
+		sprintf(temp,"%d",stepSize);
+		//itoa(stepSize,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"r");
+		sprintf(temp,"%d",maxR);
+		//itoa(maxR,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"e");
+		strcat(resultsFileName,indexType);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"ffto");
+		sprintf(temp,"%d",fftopt);
+		//itoa(fftopt,temp,10);
+		strcat(resultsFileName,temp);
+
+		strcat(resultsFileName,"_");
+		strcat(resultsFileName,"runMode");
+		sprintf(temp,"%d",runMode);
+		//itoa(runMode,temp,10);
+		strcat(resultsFileName,temp);
+	}
+	//___________________________________________________
+	else if(strcmp(runOption,"search")==0)
+	{
+		strcat(resultsFileName,"d");
+		strcat(resultsFileName,indexName);
+		strcat(resultsFileName,"_");
+
+
+		strcat(resultsFileName,"q");
+		strcat(resultsFileName,queryFileName);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"fq");
+		sprintf(temp,"%d",firstQuery);
+		//itoa(firstQuery,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"l");
+		sprintf(temp,"%d",lastQuery);
+		//itoa(lastQuery,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"a");
+		sprintf(temp,"%d",maxRadius);
+		//itoa(maxRadius,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"i");
+		sprintf(temp,"%d",minRadius);
+		//itoa(minRadius,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"y");
+		sprintf(temp,"%d",step);
+		//itoa(step,temp,10);
+		strcat(resultsFileName,temp);
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"ver");
+		if(verify==false)
+		{strcat(resultsFileName,"1");}
+		else
+		{strcat(resultsFileName,"0");}
+		strcat(resultsFileName,"_");
+
+		strcat(resultsFileName,"indexM");
+		sprintf(temp,"%d",indexMode);
+		//itoa(indexMode,temp,10);
+		strcat(resultsFileName,temp);
+	}
+	//________________________________________________________
+	strcat(resultsFileName,".txt");
 }
+
+
 
 /**
 * @This is the main entry point for building a MVP Index or do search in the index built before. It can build more than one index structure
@@ -134,7 +298,7 @@ int main(int argc, char** argv)
 
 	int c;
 
-	int runMode = 0;
+	int buildMode = 0;
 	char *dataFileName="uniformvector-20dim-1m.txt";
 	int numPivot=2;
 	int setA = 10000;
@@ -163,23 +327,30 @@ int main(int argc, char** argv)
 	double minRadius= 0;
 	double step=0.25;
 	bool verify=false;
-	char *resultsFileName="resultsfile.txt";
+	//char *resultsFileName="resultsfile.txt";
+	char resultsFileName[500];
+	strcpy(resultsFileName,"resultsfile.txt");
 
 	char *runOption="buildandsearch";
-	int indexMode=1;
+	int searchMode=1;
 
+	double MF_maxRadius = 2.0;
+	double MF_middleProportion = 0.5; 
+
+	bool putinfo = true;
 	while (1)
 	{		
 		static struct option_a long_options[] =
 		{
 			/*{"verbose", ARG_NONE, &verbose_flag, 1},
 			{"brief",   ARG_NONE, &verbose_flag, 0},*/
-
+			{"maxR", ARG_REQ, 0 , 'Y'},
+			{"midP", ARG_REQ, 0 , 'Z'},
 			{"r",    ARG_REQ, 0, 'a'},
-			{"runMode",    ARG_REQ, 0, 'A'},
+			{"buildMode",    ARG_REQ, 0, 'A'},
 			{"b", ARG_REQ,0,'b'},
-			{"indexN", ARG_REQ,0,'B'},
-			{"indexM", ARG_REQ,0,'c'},
+			{"indexName", ARG_REQ,0,'B'},
+			{"searchMode", ARG_REQ,0,'c'},
 			{"n",    ARG_REQ, 0 , 'd'},
 			{"t",    ARG_REQ, 0 , 'D'},
 			{"e",    ARG_REQ, 0 , 'e'},
@@ -195,7 +366,7 @@ int main(int argc, char** argv)
 			{"psm",    ARG_REQ, 0 , 'p'},
 			{"dpm",    ARG_REQ, 0 , 'P'},
 			{"q",    ARG_REQ, 0 , 'q'},
-			{"runO",ARG_REQ, 0,'r'},
+			{"runOption",ARG_REQ, 0,'r'},
 			{"fq",  ARG_REQ, 0 , 'R'},
 			{"seta",    ARG_REQ, 0 , 's'},
 			{"setn",    ARG_REQ, 0 , 'S'},
@@ -206,12 +377,12 @@ int main(int argc, char** argv)
 			{"a",    ARG_REQ, 0 , 'x'},
 			{"y",    ARG_REQ, 0 , 'y'},
 			{"f",    ARG_REQ, 0 , 'z'},
-
+			{"putinfo",    ARG_REQ, 0 , 'O'},
 			/*{ ARG_NULL , ARG_NULL , ARG_NULL , ARG_NULL }*/
 		};
 
 		int option_index = 0;
-		c = getopt_long_a(argc, argv, ("a:A:b:B:c:d:D:e:f:F:g:i:I:l:L:m:n:p:P:q:r:R:s:S:t:T:U:v:x:y:z:"), long_options, &option_index);
+		c = getopt_long_a(argc, argv, ("a:A:b:B:c:d:D:e:f:F:g:i:I:l:L:m:n:p:P:q:r:R:s:S:t:T:U:v:x:y:z:Y:Z:"), long_options, &option_index);
 
 		// Check for end of operation or error
 		if (c == -1)
@@ -233,8 +404,8 @@ int main(int argc, char** argv)
 			cout<<"option -maxR with value " << maxR << endl;
 			break;
 		case ('A'):	
-			runMode = stringToNumber<int>(optarg_a);
-			cout<<"option -runMOde with value " << runMode << endl;
+			buildMode = stringToNumber<int>(optarg_a);
+			cout<<"option -buildMode with value " << buildMode << endl;
 			break;
 		case ('b'):	
 			bucket = stringToNumber<bool>(optarg_a);
@@ -243,11 +414,11 @@ int main(int argc, char** argv)
 		case ('B'):	
 			indexName = new char[strlen(optarg_a)+1];
 			strcpy(indexName,optarg_a);
-			cout<<"option -indexN with value " << indexName << endl;
+			cout<<"option -indexName with value " << indexName << endl;
 			break;
 		case ('c'):	
-			indexMode = stringToNumber<int>(optarg_a);
-			cout<<"option -indexMode with value " << indexMode << endl;
+			searchMode = stringToNumber<int>(optarg_a);
+			cout<<"option -searchMode with value " << searchMode << endl;
 			break;
 		case ('d'):	
 			dataFileName = new char[strlen(optarg_a)+1];
@@ -289,7 +460,7 @@ int main(int argc, char** argv)
 			printf (("option -lastQuery with value `%d'\n"), lastQuery);
 			break;
 		case ('L'):	
-			resultsFileName=new char[strlen(optarg_a)+1];
+			//resultsFileName=new char[strlen(optarg_a)+1];
 			strcpy(resultsFileName,optarg_a);
 			printf (("option -resultsFileName with value `%s'\n"), resultsFileName);
 			break;
@@ -349,6 +520,10 @@ int main(int argc, char** argv)
 			verify = stringToNumber<bool>(optarg_a);
 			printf (("option -verify with value `%d'\n"), verify);
 			break;
+		case ('O'):	
+			putinfo = stringToNumber<bool>(optarg_a);
+			printf (("option -putinfo with value `%d'\n"), putinfo);
+			break;
 		case ('x'):	
 			maxRadius = stringToNumber<float>(optarg_a);
 			printf (("option -maxRadius with value `%f'\n"), maxRadius);
@@ -360,6 +535,14 @@ int main(int argc, char** argv)
 		case ('z'):	
 			singlePivotFanout=stringToNumber<int>(optarg_a);
 			printf (("option -singlePivotFanout with value `%d'\n"), singlePivotFanout);
+			break;
+		case ('Y'):
+			MF_maxRadius = stringToNumber<double>(optarg_a);
+			cout<<"option -MF_maxRadius with value " << MF_maxRadius << endl;
+			break;
+		case ('Z'):	
+			MF_middleProportion = stringToNumber<double>(optarg_a);
+			cout<<"option -MF_middleProportion with value " << MF_middleProportion << endl;
 			break;
 
 		case '?':
@@ -377,50 +560,21 @@ int main(int argc, char** argv)
 		while (optind < argc) printf (("%s "), argv[optind++]);
 		printf (("\n"));
 	}
-#ifdef WIN_C
+
+	//resultfilename(buildMode,dataFileName,numPivot,setA,setN,singlePivotFanout,fftscale,pivotSelectionMethod,partitionMethod,maxLeafSize,dataType,initialSize,finalSize,stepSize,bucket,fragmentLength,dim,maxR,indexType,fftopt,indexName,queryFileName,firstQuery,lastQuery,maxRadius,minRadius,step,verify,resultsFileName,runOption,searchMode,MF_maxRadius,MF_middleProportion);
+
 	if(strcmp(runOption,"buildandsearch")==0)
 	{
-		buildAndSearch(dataFileName,numPivot,setA,setN,singlePivotFanout,fftscale,pivotSelectionMethod,partitionMethod,maxLeafSize,dataType,initialSize,finalSize,stepSize,bucket,fragmentLength,dim,maxR,indexType,fftopt,queryFileName,firstQuery,lastQuery,maxRadius,minRadius,step,verify,resultsFileName,runMode,indexName,indexMode);
-		showMemoryInfo(resultsFileName);
+		buildAndSearch(dataFileName,numPivot,setA,setN,singlePivotFanout,fftscale,pivotSelectionMethod,partitionMethod,maxLeafSize,dataType,initialSize,finalSize,stepSize,bucket,fragmentLength,dim,maxR,indexType,fftopt,queryFileName,firstQuery,lastQuery,maxRadius,minRadius,step,verify,resultsFileName,buildMode,indexName,searchMode,MF_maxRadius,MF_middleProportion,putinfo);
 	}
 	else if(strcmp(runOption,"build")==0)
 	{
-		batchBulkLoad(dataFileName,numPivot,setA,setN,singlePivotFanout,fftscale,pivotSelectionMethod,partitionMethod,maxLeafSize,dataType,initialSize,finalSize,stepSize,bucket,fragmentLength,dim,maxR,indexType,fftopt,resultsFileName,runMode,indexName);
-		/*showMemoryInfo(resultsFileName);*/
-
+		batchBulkLoad(dataFileName,numPivot,setA,setN,singlePivotFanout,fftscale,pivotSelectionMethod,partitionMethod,maxLeafSize,dataType,initialSize,finalSize,stepSize,bucket,fragmentLength,dim,maxR,indexType,fftopt,resultsFileName,buildMode,indexName,MF_maxRadius,MF_middleProportion,putinfo);
 	}
 	else if(strcmp(runOption,"search")==0)
 	{
-		searchIndex(initialSize,queryFileName,dataType,firstQuery,lastQuery,dim,fragmentLength,maxRadius,minRadius,step,verify,resultsFileName,runMode,indexName,indexMode);
-		showMemoryInfo(resultsFileName);
+		searchIndex(initialSize,queryFileName,dataType,firstQuery,lastQuery,dim,fragmentLength,maxRadius,minRadius,step,verify,resultsFileName,buildMode,indexName,searchMode);
 	}
-#else
-	char resultFile[100]="./data/";
-	strcat(resultFile,resultsFileName);
-	ofstream output(resultFile,ofstream::app);
-	struct sysinfo s_info;
-	if(strcmp(runOption,"buildandsearch")==0)
-	{
-		buildAndSearch(dataFileName,numPivot,setA,setN,singlePivotFanout,fftscale,pivotSelectionMethod,partitionMethod,maxLeafSize,dataType,initialSize,finalSize,stepSize,bucket,fragmentLength,dim,maxR,indexType,fftopt,queryFileName,firstQuery,lastQuery,maxRadius,minRadius,step,verify,resultsFileName,runMode,indexName);
-		output<<"内存使用:"<<s_info. mem_unit/1048576.0 <<" MB"<<endl; 
-	}
-	else if(strcmp(runOption,"build")==0)
-	{
-		struct tms tmp;
-		clock_t begin = times(&tmp);
-		batchBulkLoad(dataFileName,numPivot,setA,setN,singlePivotFanout,fftscale,pivotSelectionMethod,partitionMethod,maxLeafSize,dataType,initialSize,finalSize,stepSize,bucket,fragmentLength,dim,maxR,indexType,fftopt,resultsFileName,runMode,indexName);
-		clock_t end = times(&tmp);
-		output<<"内存使用:"<<s_info. mem_unit/1048576.0 <<" MB"<<endl; 
-		output<<"Total time elapsed during building the index structure is "<< (double) (end.tms_cutime-begin.tms_cutime)/CLOCKS_PER_SEC << " s"<<endl;
-
-	}
-	else if(strcmp(runOption,"search")==0)
-	{
-		searchIndex(initialSize,queryFileName,dataType,firstQuery,lastQuery,dim,fragmentLength,maxRadius,minRadius,step,verify,resultsFileName,runMode,indexName,indexMode);
-		output<<"内存使用:"<<s_info. mem_unit/1048576.0 <<" MB"<<endl; 
-	}
-#endif
-	//system("pause");
 
 	return 0;
 }

@@ -109,7 +109,7 @@ CImage::~CImage()
 	delete[] (m_Feas);
 	delete[] (max_Dist);
     i++;
-    cout<<i<<endl;
+   /* cout<<i<<endl;*/
 }
 
 /**
