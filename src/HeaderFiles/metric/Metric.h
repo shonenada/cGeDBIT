@@ -15,8 +15,9 @@
 * @author Fuli Lei
 * @version 2013526
 *
-* class name is CMetric, this class descripe the
-* basic information of how to get the distance of two object
+* class name is CMetric, this class descripe the basic information of how to get the distance of two object.It specifies a binary function to compute distance
+ * between two data points in metric space. The distance should have the metric properties, i.e.
+ * non-negativity, symmetry and triangle inequality.
 */
 
 class CMetric

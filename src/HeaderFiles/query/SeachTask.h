@@ -7,8 +7,6 @@
 #include "../index/MVPInternalNode.h"
 #include "../index/MVPLeafNode.h"
 
-
-
 #include <memory>
 #include <deque>
 
@@ -18,8 +16,10 @@ public:
     CSeachTask(string indexName,string dataType,CMetric &metric);
     ~CSeachTask(void);
 
-    vector<shared_ptr<CIndexObject> >* search(CRangeQuery &q);
-
+	int getResultSize(){return result.size();}
+    vector<shared_ptr<CIndexObject> >* search(CRangeQuery &q);;
+	void SMTSearch(CRangeQuery &rq);
+	void gSMTSearch(CRangeQuery &rq,vector<shared_ptr<CIndexObject> > *&res);
 private:
 
    

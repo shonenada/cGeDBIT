@@ -6,19 +6,18 @@
 */
 #include "../../HeaderFiles/objects/IndexObject.h"
 
-int CIndexObject::count = 0;
 
 /**none parameter constructor*/
 CIndexObject::CIndexObject(void)
 {
-    count ++;
+
 }
 
 
 /**destructor*/
 CIndexObject::~CIndexObject(void)
 {
-    count--;
+
 }
 
 int CIndexObject::writeExternal(ofstream &out)

@@ -25,7 +25,6 @@ using namespace std;
 class CIndexObject
 {
 public:
-    static int count;
     /**none parameter constructor*/
     CIndexObject(void);
     /**destructor*/
